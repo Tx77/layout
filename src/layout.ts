@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-12 18:30:06
+ * @LastEditTime: 2024-06-12 20:34:21
  * @Description:
  */
 
@@ -35,7 +35,7 @@ export interface ComponentState {
 export type Coordinate = number | [number, number];
 
 export type ComponentWidthRange = {
-  width: [number, number] | string;
+  width: [number, number];
   height: number;
   compName: string;
   background?: string;
@@ -67,7 +67,7 @@ export const screenResolutionMap: ScreenResolutionMap[] = [
       ],
       '[1024, 1280]': [
         { width: [1024, 1280], compName: 'Header', height: 60, x: 0, y: 0 },
-        { width: [484, 743], compName: 'ExchangeChart', height: 460, x: 0, y: 60 },
+        { width: [484, 743], compName: 'ExchangeChart', height: 460, x: 532, y: 60 },
         { width: [266, 266], compName: 'ExchangeList', height: 460, x: 266, y: 60 },
         { width: [266, 266], compName: 'ExchangeInfo', height: 968, x: 0, y: 60 },
         { width: [760, 1011], compName: 'UserExchangeTable', height: 505, x: 266, y: 520 },
@@ -86,26 +86,11 @@ export const screenResolutionMap: ScreenResolutionMap[] = [
         { width: [300, 360], compName: 'ExchangeInfo', height: 968, x: [1136, 1556], y: 60 },
         { width: [1138, 1558], compName: 'UserExchangeTable', height: 356, x: 0, y: 670 },
       ],
-      //* 0.9281 2376px
-      //* x+y+z = 0.072
-      //* screenWidth*(0.6225 + x) + screenWidth*(0.1874+y) + screenWidth*(0.1874+z) >= screenWidth
-      //* screenWidth*[0.6225 - 0.6625] + screenWidth*[0.1874 - 0.1679] + screenWidth*0.1874 >= screenWidth
-      //* screenWidth*(0.6225+x) + screenWidth*(0.1874+x)+screenWidth*0.1874 >= screenWidth
-      //* screenWidth*(0.6225+0.072) + screenWidth*(0.1874+0.072)+screenWidth*0.1874 >= screenWidth
       '[1921, 2560]': [
         { width: [1921, 2560], compName: 'Header', height: 60, x: 0, y: 0 },
-        //* 0.6225* Math.abs(0.6225 - 0.6625) = 0.0249
-        //* 2560 - screenWidth*0.0249
-        //* 0.6225 - 0.6625  1325
         { width: [1196, 1696], compName: 'ExchangeChart', height: 610, x: 0, y: 60 },
-        //* 0.003
-        //* 1696 - screenWidth*0.003
-        //* 0.1874 - 0.1679  336
         { width: [360, 430], compName: 'ExchangeList', height: 610, x: [1196, 1696], y: 60 },
-        //* 360
-        //* 0.1874 - 0.1874 360
         { width: [360, 430], compName: 'ExchangeInfo', height: 968, x: [1556, 2126], y: 60 },
-        //* 0.8110 - 0.8313 1663
         { width: [1558, 2128], compName: 'UserExchangeTable', height: 356, x: 0, y: 670 },
       ],
     },

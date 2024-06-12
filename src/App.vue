@@ -16,6 +16,8 @@ import UserExchangeTable from "./components/comp5.vue";
 
 const screenWidth = ref(0);
 const screenHeight = ref(0);
+const screenMinWidth = ref(0);
+const screenMaxWidth = ref(0);
 const layoutCompMap = reactive<Map<string, { compName: string; layoutStyle: ComponentStyle }>>(new Map());
 const currentLayoutStrategy = ref<LayoutStrategy>("strategy1");
 
@@ -41,16 +43,6 @@ onMounted(() => {
 		resizeObserver.value.observe(observedElement.value);
 	}
 });
-
-// function solveEquation(screenWidth: number) {
-// 	const x = ((1 - 0.072) * screenWidth) / (1 + 0.6225);
-// 	const y = ((1 - 0.072) * screenWidth) / (1 + 0.1874);
-// 	const z = ((1 - 0.072) * screenWidth) / (1 + 0.1874);
-
-// 	const transformNum = (num: number) => parseFloat(num.toFixed(2));
-
-// 	return { x: transformNum(x), y: transformNum(y), z: transformNum(z) };
-// }
 
 /**
  * 加载组件宽度区间
@@ -80,12 +72,9 @@ const getComponentWidthRange = (screenWidth: number, resolution: Resolution): Co
 	for (const resolutionRange in resolution) {
 		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
 		if (screenWidth >= minWidth && screenWidth <= maxWidth) {
-			return resolution[resolutionRange].map((item) => {
-				if (item.width[1] === maxWidth) {
-					item.width = "100%";
-				}
-				return item;
-			});
+			screenMinWidth.value = minWidth;
+			screenMaxWidth.value = maxWidth;
+			return resolution[resolutionRange];
 		}
 	}
 	return null; //* 如果没有找到对应的分辨率范围，则返回null
@@ -97,16 +86,14 @@ const getComponentWidthRange = (screenWidth: number, resolution: Resolution): Co
  */
 const setComponentStyleByStrategy = (compStyles: ComponentWidthRange[]) => {
 	compStyles.forEach((item: ComponentWidthRange) => {
-		const compPosition = getRelativePosition(item, screenWidth.value);
+		const compPosition = getRelativePosition(item, screenWidth.value, screenMinWidth.value, screenMaxWidth.value);
 		layoutCompMap.set(item.compName, {
 			compName: item.compName,
 			layoutStyle: {
 				position: "absolute",
 				left: `${compPosition.x}%`,
 				top: `${item.y}px`,
-				width: `${compPosition.maxWidth}%`,
-				minWidth: `${compPosition.minWidth}%`,
-				maxWidth: `${compPosition.maxWidth}%`,
+				width: `${compPosition.width}%`,
 				height: `${item.height}px`,
 				transition: "all 0.25s ease",
 			},
@@ -122,11 +109,16 @@ const setComponentStyleByStrategy = (compStyles: ComponentWidthRange[]) => {
  */
 function getRelativePosition(
 	compStyles: ComponentWidthRange,
-	screenWidth: number
-): { x: number; width: number; [x: string]: number } {
+	screenWidth: number,
+	screenMinWidth: number,
+	screenMaxWidth: number
+): { x: string; width: string } {
 	const { x, width } = compStyles;
 
-	//* 解析区间值
+	/**
+	 * 解析区间值
+	 * @param value
+	 */
 	const parseRange = (value: Coordinate): { min: number; max: number } => {
 		if (Array.isArray(value)) {
 			const [min, max] = value;
@@ -145,49 +137,45 @@ function getRelativePosition(
 		screenWidth: number
 	): { minPercentage: number; maxPercentage: number } => {
 		const minPercentage = (range.min / screenWidth) * 100;
-		//todo 最大值的计算有误，屏幕宽度是在不断变化的，如果layout中组件的最小和最大宽度和屏幕宽度区间一致，则组件的宽度百分比应为100%
 		const maxPercentage = (range.max / screenWidth) * 100;
 		return { minPercentage, maxPercentage };
 	};
 
-	let finalWidth: number;
-	let finalX: number;
-	let minWidth: number;
-	let maxWidth: number;
-	const xRange = parseRange(x);
-	const xPercentage = toPercentage(xRange, screenWidth);
+	/**
+	 * 计算在当前屏幕宽度下的具体值
+	 * @param range
+	 * @param screenWidth
+	 * @param screenMinWidth
+	 * @param screenMaxWidth
+	 */
+	const calculateValue = (
+		range: { min: number; max: number },
+		screenWidth: number,
+		screenMinWidth: number,
+		screenMaxWidth: number
+	): number => {
+		const screenRange = screenMaxWidth - screenMinWidth;
+		const valueRange = range.max - range.min;
+		const normalizedScreenWidth = screenWidth - screenMinWidth;
+		return range.min + (valueRange * normalizedScreenWidth) / screenRange;
+	};
+
 	//* 解析并计算宽度和x值
-	if (typeof width === "string" && width === "100%") {
-		finalWidth = 100;
-		minWidth = 100;
-		maxWidth = 100;
-		finalX = 0;
-	} else {
-		const widthRange = parseRange(width);
-		const widthPercentage = toPercentage(widthRange, screenWidth);
-		//* 取区间的中间值作为最终值
+	const widthRange = parseRange(width);
+	const xRange = parseRange(x);
 
-		//todo 取中间值这种方式不行，如果我设定某个元素宽度区间为[1921, 2560]，并且当前屏幕宽度为2560，那得到的宽度百分比就不对
-		finalWidth = parseFloat(((widthPercentage.minPercentage + widthPercentage.maxPercentage) / 2).toFixed(2));
-		minWidth = widthPercentage.minPercentage;
-		maxWidth = widthPercentage.maxPercentage;
-		// finalX = parseFloat(((xPercentage.minPercentage + xPercentage.maxPercentage) / 2).toFixed(2));
-		if (xPercentage.maxPercentage === xPercentage.minPercentage) {
-			finalX = 0;
-		} else {
-			finalX = parseFloat(xPercentage.maxPercentage.toFixed(2));
-		}
-	}
+	const calculatedWidth = calculateValue(widthRange, screenWidth, screenMinWidth, screenMaxWidth);
+	const calculatedX = calculateValue(xRange, screenWidth, screenMinWidth, screenMaxWidth);
 
-	if (finalWidth > 100) {
-		finalWidth = 100;
-	}
-
+	//* 转换为百分比
+	const widthPercentage = toPercentage(
+		{ min: Math.round(calculatedWidth), max: Math.round(calculatedWidth) },
+		screenWidth
+	);
+	const xPercentage = toPercentage({ min: Math.round(calculatedX), max: Math.round(calculatedX) }, screenWidth);
 	return {
-		x: finalX,
-		width: finalWidth,
-		minWidth,
-		maxWidth,
+		x: xPercentage.minPercentage.toFixed(0),
+		width: widthPercentage.minPercentage.toFixed(0),
 	};
 }
 
