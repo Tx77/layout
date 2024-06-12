@@ -81,7 +81,7 @@ const getComponentWidthRange = (screenWidth: number, resolution: Resolution): Co
 		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
 		if (screenWidth >= minWidth && screenWidth <= maxWidth) {
 			return resolution[resolutionRange].map((item) => {
-				if (item.width[0] === minWidth && item.width[1] === maxWidth) {
+				if (item.width[1] === maxWidth) {
 					item.width = "100%";
 				}
 				return item;
@@ -104,7 +104,9 @@ const setComponentStyleByStrategy = (compStyles: ComponentWidthRange[]) => {
 				position: "absolute",
 				left: `${compPosition.x}%`,
 				top: `${item.y}px`,
-				width: `${compPosition.width}%`,
+				width: `${compPosition.maxWidth}%`,
+				minWidth: `${compPosition.minWidth}%`,
+				maxWidth: `${compPosition.maxWidth}%`,
 				height: `${item.height}px`,
 				transition: "all 0.25s ease",
 			},
@@ -149,25 +151,43 @@ function getRelativePosition(
 	};
 
 	let finalWidth: number;
+	let finalX: number;
+	let minWidth: number;
+	let maxWidth: number;
 	const xRange = parseRange(x);
 	const xPercentage = toPercentage(xRange, screenWidth);
-	const finalX = parseFloat(((xPercentage.minPercentage + xPercentage.maxPercentage) / 2).toFixed(2));
 	//* 解析并计算宽度和x值
 	if (typeof width === "string" && width === "100%") {
 		finalWidth = 100;
+		minWidth = 100;
+		maxWidth = 100;
+		finalX = 0;
 	} else {
 		const widthRange = parseRange(width);
 		const widthPercentage = toPercentage(widthRange, screenWidth);
-
 		//* 取区间的中间值作为最终值
 
 		//todo 取中间值这种方式不行，如果我设定某个元素宽度区间为[1921, 2560]，并且当前屏幕宽度为2560，那得到的宽度百分比就不对
 		finalWidth = parseFloat(((widthPercentage.minPercentage + widthPercentage.maxPercentage) / 2).toFixed(2));
+		minWidth = widthPercentage.minPercentage;
+		maxWidth = widthPercentage.maxPercentage;
+		// finalX = parseFloat(((xPercentage.minPercentage + xPercentage.maxPercentage) / 2).toFixed(2));
+		if (xPercentage.maxPercentage === xPercentage.minPercentage) {
+			finalX = 0;
+		} else {
+			finalX = parseFloat(xPercentage.maxPercentage.toFixed(2));
+		}
+	}
+
+	if (finalWidth > 100) {
+		finalWidth = 100;
 	}
 
 	return {
 		x: finalX,
 		width: finalWidth,
+		minWidth,
+		maxWidth,
 	};
 }
 

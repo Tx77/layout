@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-12 18:08:21
+ * @LastEditTime: 2024-06-12 18:30:06
  * @Description:
  */
 
@@ -87,7 +87,6 @@ export const screenResolutionMap: ScreenResolutionMap[] = [
         { width: [1138, 1558], compName: 'UserExchangeTable', height: 356, x: 0, y: 670 },
       ],
       //* 0.9281 2376px
-
       //* x+y+z = 0.072
       //* screenWidth*(0.6225 + x) + screenWidth*(0.1874+y) + screenWidth*(0.1874+z) >= screenWidth
       //* screenWidth*[0.6225 - 0.6625] + screenWidth*[0.1874 - 0.1679] + screenWidth*0.1874 >= screenWidth
@@ -105,7 +104,7 @@ export const screenResolutionMap: ScreenResolutionMap[] = [
         { width: [360, 430], compName: 'ExchangeList', height: 610, x: [1196, 1696], y: 60 },
         //* 360
         //* 0.1874 - 0.1874 360
-        { width: [360, 360], compName: 'ExchangeInfo', height: 968, x: [1556, 2126], y: 60 },
+        { width: [360, 430], compName: 'ExchangeInfo', height: 968, x: [1556, 2126], y: 60 },
         //* 0.8110 - 0.8313 1663
         { width: [1558, 2128], compName: 'UserExchangeTable', height: 356, x: 0, y: 670 },
       ],
