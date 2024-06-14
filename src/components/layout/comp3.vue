@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import { PropType } from "vue";
-import { type ComponentStyle } from "../layout";
+import { type ComponentStyle } from "./layout";
 
 const props = defineProps({
 	layoutStyle: {

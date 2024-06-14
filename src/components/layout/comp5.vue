@@ -1,13 +1,13 @@
 <template>
-	<div id="comp1" :style="props.layoutStyle">
-		<div>Header</div>
+	<div id="comp5" :style="props.layoutStyle">
+		<div>UserExchangeTable</div>
 		<div>width: {{ props.layoutStyle.width }}</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { PropType } from "vue";
-import { type ComponentStyle } from "../layout";
+import { type ComponentStyle } from "./layout";
 
 const props = defineProps({
 	layoutStyle: {
@@ -19,7 +19,7 @@ const props = defineProps({
 </script>
 
 <style scoped>
-#comp1 {
-	background-color: red;
+#comp5 {
+	background-color: chocolate;
 }
 </style>

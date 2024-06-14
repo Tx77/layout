@@ -2,32 +2,35 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-13 15:19:23
+ * @LastEditTime: 2024-06-14 15:15:36
  * @Description:
  */
 
-import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { defineComponent, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import {
   LayoutStrategy,
   type ComponentStyle,
   type ComponentWidthRange,
-  screenResolutionMap,
   type Resolution,
   type Coordinate,
+  ScreenResolutionMap,
 } from "./layout";
-
 
 export default class LayoutResizer {
   screenWidth = ref(0);
   screenHeight = ref(0);
   screenMinWidth = ref(0);
   screenMaxWidth = ref(0);
-  layoutCompMap = reactive(new Map<string, { compName: string; layoutStyle: ComponentStyle; }>());
+  layoutCompMap = reactive(new Map<string, { compName: string; comp: ReturnType<typeof defineComponent>; layoutStyle: ComponentStyle; }>());
   currentLayoutStrategy = ref<LayoutStrategy>(LayoutStrategy.PRO_RIGHT);
   resizeObserver = ref<ResizeObserver | null>(null);
   observedElement = ref<HTMLElement | null>(null);
 
-  constructor(private selectorName: string, private layoutStrategy: LayoutStrategy) {
+  constructor(
+    private selectorName: string,
+    layoutStrategy: LayoutStrategy,
+    private screenResolutionMap: ScreenResolutionMap[]
+  ) {
     this.currentLayoutStrategy.value = layoutStrategy;
 
     onMounted(() => {
@@ -91,14 +94,17 @@ export default class LayoutResizer {
    */
   private loadComponentWidthRange(layoutStrategy: LayoutStrategy, screenWidth: number): ComponentWidthRange[] {
     let layoutStyles: ComponentWidthRange[] | null = [];
-    for (let item of screenResolutionMap) {
+    for (let item of this.screenResolutionMap) {
       if (item.layoutStrategy === layoutStrategy) {
         layoutStyles = this.getComponentWidthRange(screenWidth, item.resolution);
         break;
       }
     }
     if (!layoutStyles || layoutStyles.length === 0) {
-      layoutStyles = this.getComponentWidthRange(screenWidth, screenResolutionMap[0].resolution) as ComponentWidthRange[];
+      layoutStyles = this.getComponentWidthRange(
+        screenWidth,
+        this.screenResolutionMap[0].resolution
+      ) as ComponentWidthRange[];
     }
     return layoutStyles;
   }
@@ -125,28 +131,31 @@ export default class LayoutResizer {
    * @param compStyles
    */
   private setComponentStyleByStrategy(compStyles: ComponentWidthRange[]) {
+    this.layoutCompMap.clear();
     compStyles.forEach((item: ComponentWidthRange) => {
       const compPosition = this.getRelativePosition(item, this.screenWidth.value);
       this.layoutCompMap.set(item.compName, {
         compName: item.compName,
+        comp: item.comp,
         layoutStyle: {
-          position: 'absolute',
+          position: "absolute",
           left: `${compPosition.x}%`,
           top: `${item.y}px`,
           width: `${compPosition.width}%`,
           height: `${item.height}px`,
-          transition: 'all 0.25s ease',
+          transition: "all 0.25s ease",
+          overflow: 'hidden'
         },
       });
     });
   }
 
   /**
-  * 计算组件相对位置和大小的函数
-  * @param compStyles - 组件的样式信息
-  * @param screenWidth - 屏幕宽度
-  * @returns 组件的计算位置和大小
-  */
+   * 计算组件相对位置和大小的函数
+   * @param compStyles - 组件的样式信息
+   * @param screenWidth - 屏幕宽度
+   * @returns 组件的计算位置和大小
+   */
   private getRelativePosition(compStyles: ComponentWidthRange, screenWidth: number): { x: string; width: string; } {
     const { x, width } = compStyles;
 
@@ -167,19 +176,22 @@ export default class LayoutResizer {
      * @param range
      * @param screenWidth
      */
-    const toPercentage = (range: { min: number; max: number; }, screenWidth: number): { minPercentage: number; maxPercentage: number; } => {
+    const toPercentage = (
+      range: { min: number; max: number; },
+      screenWidth: number
+    ): { minPercentage: number; maxPercentage: number; } => {
       const minPercentage = (range.min / screenWidth) * 100;
       const maxPercentage = (range.max / screenWidth) * 100;
       return { minPercentage, maxPercentage };
     };
 
     /**
-    * 计算在当前屏幕宽度下的具体值
-    * @param range
-    * @param screenWidth
-    * @param screenMinWidth
-    * @param screenMaxWidth
-    */
+     * 计算在当前屏幕宽度下的具体值
+     * @param range
+     * @param screenWidth
+     * @param screenMinWidth
+     * @param screenMaxWidth
+     */
     const calculateValue = (range: { min: number; max: number; }, screenWidth: number): number => {
       const screenRange = this.screenMaxWidth.value - this.screenMinWidth.value;
       const valueRange = range.max - range.min;
@@ -195,7 +207,10 @@ export default class LayoutResizer {
     const calculatedX = calculateValue(xRange, screenWidth);
 
     //* 转换为百分比
-    const widthPercentage = toPercentage({ min: Math.round(calculatedWidth), max: Math.round(calculatedWidth) }, screenWidth);
+    const widthPercentage = toPercentage(
+      { min: Math.round(calculatedWidth), max: Math.round(calculatedWidth) },
+      screenWidth
+    );
     const xPercentage = toPercentage({ min: Math.round(calculatedX), max: Math.round(calculatedX) }, screenWidth);
     return {
       x: xPercentage.minPercentage.toFixed(2),

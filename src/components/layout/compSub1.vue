@@ -1,13 +1,13 @@
 <template>
-	<div id="comp4" :style="props.layoutStyle">
-		<div>ExchangeInfo</div>
+	<div id="compSub1" :style="props.layoutStyle">
+		<div>compSub1</div>
 		<div>width: {{ props.layoutStyle.width }}</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { PropType } from "vue";
-import { type ComponentStyle } from "../layout";
+import { type ComponentStyle } from "./layout";
 
 const props = defineProps({
 	layoutStyle: {
@@ -19,7 +19,7 @@ const props = defineProps({
 </script>
 
 <style scoped>
-#comp4 {
-	background-color: salmon;
+#compSub1 {
+	background-color: darkgreen;
 }
 </style>
