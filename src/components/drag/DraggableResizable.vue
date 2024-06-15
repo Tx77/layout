@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-14 15:17:18
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-14 20:19:22
+ * @LastEditTime: 2024-06-15 15:21:30
  * @Description: 
 -->
 <template>
@@ -66,27 +66,11 @@ const props = defineProps({
 		type: Function,
 		required: true,
 	},
-	detectCollision: {
-		type: Function,
-		required: true,
-	},
-	detectSnap: {
-		type: Function,
-		required: true,
-	},
-	checkClosestComponent: {
-		type: Function,
-		required: true,
-	},
 	setCurrentComponent: {
 		type: Function,
 		required: true,
 	},
 	setGhostComponent: {
-		type: Function,
-		required: true,
-	},
-	handleCollision: {
 		type: Function,
 		required: true,
 	},
