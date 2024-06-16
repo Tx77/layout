@@ -7,16 +7,6 @@ export interface ComponentState {
   zIndex?: number | string;
   fixed?: boolean;
 }
-export interface SnapResult {
-  id?: string;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  cx?: number;
-  cy?: number;
-  isSnap: boolean;
-}
 export interface GhostStyle {
   top: string;
   left: string;

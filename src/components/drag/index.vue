@@ -33,7 +33,7 @@ const defaultComponents = [
 	{ id: "comp1", x: 0, y: 0, width: screenWidth, height: 200, zIndex: "1", fixed: true },
 	{ id: "comp2", x: 0, y: 200, width: 600, height: 300, zIndex: "1", fixed: false },
 	{ id: "comp3", x: 1200, y: 200, width: 300, height: 600, zIndex: "1", fixed: false },
-	{ id: "comp4", x: 400, y: 400, width: 400, height: 600, zIndex: "1", fixed: true },
+	{ id: "comp4", x: 400, y: 400, width: 400, height: 600, zIndex: "1", fixed: false },
 ];
 const components = ref<ComponentState[]>([]);
 const componentsStorage = ref<ComponentState[]>([]);
@@ -140,13 +140,37 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		width: currentComponentWidth,
 		height: currentComponentHeight,
 	};
+
 	const ghostPosition = calcGhostPosition(formatCurrentComponentStyle);
 	top = ghostPosition.y;
 	left = ghostPosition.x;
 	left = secondaryCorrectionLeft(left, currentComponentLeft, currentComponentWidth);
+	const closest = findClosestYComponent(currentComponentStyle.id, currentComponentTop);
+	top = closest.y + closest.height;
 	return { top, left };
 };
 
+const findMinY = (): number => {
+	return components.value.reduce((minY, component) => {
+		return component.y < minY ? component.y + component.height : minY;
+	}, Infinity);
+};
+
+function findClosestYComponent(id: string, clientY: number): ComponentState {
+	const otherComponents = components.value.filter((comp) => comp.id !== id);
+	return otherComponents.reduce((closest, current) => {
+		// 计算 current 组件的 y + height
+		const currentYHeightSum = current.y + current.height;
+		// 计算 closest 组件的 y + height
+		const closestYHeightSum = closest.y + closest.height;
+		// 计算 current 和 closest 与 clientY 的差值
+		const currentDifference = Math.abs(currentYHeightSum - clientY);
+		const closestDifference = Math.abs(closestYHeightSum - clientY);
+
+		// 比较差值，返回差值更小的组件
+		return currentDifference < closestDifference ? current : closest;
+	});
+}
 /**
  * 计算幽灵组件位置
  * @param currentComponentState
@@ -157,7 +181,7 @@ const calcGhostPosition = (
 	x: number;
 	y: number;
 } => {
-	let position = { x: currentComponentState.x, y: currentComponentState.y };
+	let position = { x: currentComponentState.x, y: findMinY() };
 	const closestParams = getClosestComponent(
 		currentComponentState.id,
 		currentComponentState.x,
@@ -166,7 +190,7 @@ const calcGhostPosition = (
 		currentComponentState.height,
 		mouseDirection as unknown as Direction
 	);
-	console.log("closestParams", closestParams.component.id);
+	// console.log("closestParams", closestParams.component.id);
 	isOverlapping.value = closestParams.isOverlapping;
 	if (closestParams.direction === "left") {
 		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
@@ -176,15 +200,16 @@ const calcGhostPosition = (
 		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
 			position.x = closestParams.component.x - currentComponentState.width;
 		}
-	} else if (closestParams.direction === "top") {
-		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
-			position.y = closestParams.component.y + closestParams.component.height;
-		}
-	} else {
-		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
-			position.y = closestParams.component.y - currentComponentState.height;
-		}
 	}
+	// else if (closestParams.direction === "top") {
+	// 	if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
+	// 		position.y = closestParams.component.y + closestParams.component.height;
+	// 	}
+	// } else {
+	// 	if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
+	// 		position.y = closestParams.component.y - currentComponentState.height;
+	// 	}
+	// }
 	return position;
 };
 

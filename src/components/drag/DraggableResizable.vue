@@ -102,6 +102,10 @@ const updateSize = (width: number, height: number) => {
 };
 
 const onMouseDown = (event: MouseEvent) => {
+	if (props.componentState.fixed) {
+		mouseCursor.value = "auto";
+		return;
+	}
 	mouseCursor.value = "grabbing";
 	startX.value = event.clientX;
 	startY.value = event.clientY;
