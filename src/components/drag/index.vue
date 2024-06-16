@@ -140,17 +140,23 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		width: currentComponentWidth,
 		height: currentComponentHeight,
 	};
-	const colliedPosition = calCollied(formatCurrentComponentStyle);
-	top = colliedPosition.y;
-	left = colliedPosition.x;
-	left = secondaryCorrectionLeft(left, currentComponentWidth);
+	const ghostPosition = calcGhostPosition(formatCurrentComponentStyle);
+	top = ghostPosition.y;
+	left = ghostPosition.x;
+	left = secondaryCorrectionLeft(left, currentComponentLeft, currentComponentWidth);
 	return { top, left };
 };
 
-function calCollied(currentComponentState: ComponentState): {
+/**
+ * 计算幽灵组件位置
+ * @param currentComponentState
+ */
+const calcGhostPosition = (
+	currentComponentState: ComponentState
+): {
 	x: number;
 	y: number;
-} {
+} => {
 	let position = { x: currentComponentState.x, y: currentComponentState.y };
 	const closestParams = getClosestComponent(
 		currentComponentState.id,
@@ -160,13 +166,7 @@ function calCollied(currentComponentState: ComponentState): {
 		currentComponentState.height,
 		mouseDirection as unknown as Direction
 	);
-	console.log(
-		"closestParams",
-		closestParams.component.id
-		// closestParams.direction,
-		// "mouseDirection",
-		// mouseDirection.value
-	);
+	console.log("closestParams", closestParams.component.id);
 	isOverlapping.value = closestParams.isOverlapping;
 	if (closestParams.direction === "left") {
 		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
@@ -186,18 +186,25 @@ function calCollied(currentComponentState: ComponentState): {
 		}
 	}
 	return position;
-}
+};
 
 /**
  * 二次矫正x轴
  * @param left
+ * @param currentComponentLeft
  * @param currentComponentWidth
  */
-const secondaryCorrectionLeft = (left: number, currentComponentWidth: number): number => {
+const secondaryCorrectionLeft = (left: number, currentComponentLeft: number, currentComponentWidth: number): number => {
 	if (left < 0) {
 		return 0;
 	}
+	if (currentComponentLeft <= ghostStep.value) {
+		return 0;
+	}
 	if (left + currentComponentWidth > screenWidth!) {
+		return screenWidth! - currentComponentWidth;
+	}
+	if (currentComponentLeft + currentComponentWidth + ghostStep.value >= screenWidth!) {
 		return screenWidth! - currentComponentWidth;
 	}
 
