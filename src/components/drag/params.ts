@@ -41,3 +41,10 @@ export type ComponentStyle = {
   left: string;
   id: string;
 };
+
+export interface MousePosition {
+  x: number;
+  y: number;
+}
+
+export type Direction = 'left' | 'right' | 'top' | 'bottom';

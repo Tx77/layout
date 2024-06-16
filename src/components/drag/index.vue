@@ -25,7 +25,7 @@
 //todo 6 当预期位置侵占其他组件时，需要移动被侵占组件的位置
 import { onMounted, reactive, ref } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
-import { ClosestParams, ComponentState, ComponentStyle, GhostStyle } from "./params";
+import { ClosestParams, ComponentState, ComponentStyle, Direction, GhostStyle } from "./params";
 
 const snapDistance = 50;
 const screenWidth = document.querySelector("#app")?.clientWidth;
@@ -48,6 +48,7 @@ const parentWidth = ref(0);
 const parentHeight = ref(0);
 const ghostStep = ref(0);
 const isGhost = ref(false);
+const mouseDirection = ref<Direction>();
 const ghostStyle = ref<GhostStyle>();
 const isOverlapping = ref(false);
 
@@ -101,8 +102,9 @@ const getCurrentComponent = (currentComponent: ComponentStyle): ComponentState =
 	});
 };
 
-const getGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyle) => {
+const getGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyle, lastMouseDirection: Direction) => {
 	isGhost.value = isShow;
+	mouseDirection.value = lastMouseDirection;
 	if (isGhost.value && currentComponentStyle) {
 		requestAnimationFrame(() => {
 			const { top, left } = calGhostPosition(currentComponentStyle);
@@ -139,88 +141,68 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		height: currentComponentHeight,
 	};
 	const colliedPosition = calCollied(formatCurrentComponentStyle);
-	top = colliedPosition?.y;
-	left = colliedPosition?.x;
-	// top = calcGhostTop(formatCurrentComponentStyle);
-	// left = calcGhostLeft(formatCurrentComponentStyle);
-	// if (colliedPosition) {
-	// 	if (typeof colliedPosition.y === "number") {
-	// 		top = colliedPosition.y;
-	// 	}
-	// 	if (typeof colliedPosition.x === "number") {
-	// 		left = colliedPosition.x;
-	// 	}
-	// }
+	top = colliedPosition.y;
+	left = colliedPosition.x;
+	left = secondaryCorrectionLeft(left, currentComponentWidth);
 	return { top, left };
-};
-
-/**
- * 计算幽灵组件的top
- * @param currentComponentState
- */
-const calcGhostTop = (currentComponentState: ComponentState): number => {
-	const closestComponent = getClosestComponent(
-		currentComponentState.id,
-		currentComponentState.x,
-		currentComponentState.y,
-		currentComponentState.width,
-		currentComponentState.height
-	);
-	if (!ghostStyle.value || isNaN(parseInt(ghostStyle.value.top))) {
-		return currentComponentState.y;
-	}
-
-	// if (closestComponent) {
-	// 	const ghostTop = closestComponent.componentStyle.height + closestComponent.componentStyle.y;
-	// 	return ghostTop;
-	// }
-	return currentComponentState.y;
-};
-
-/**
- * 计算幽灵组件的left
- * @param currentComponentState
- */
-const calcGhostLeft = (currentComponentState: ComponentState): number => {
-	const currentComponent = components.value.filter((item) => item.id === currentComponentState.id);
-	if (currentComponent) {
-		const beforeLeft = currentComponent[0].x;
-		if (currentComponentState.x < 0) {
-			return 0;
-		}
-		if (currentComponentState.x + currentComponentState.width >= parentWidth.value) {
-			return parentWidth.value - currentComponentState.width;
-		}
-		if (currentComponentState.x <= ghostStep.value) {
-			return 0;
-		}
-
-		if (Math.abs(currentComponentState.x - beforeLeft) > ghostStep.value) {
-			return beforeLeft + Math.round((currentComponentState.x - beforeLeft) / ghostStep.value) * ghostStep.value;
-		}
-		return beforeLeft;
-	}
-	return currentComponentState.x;
 };
 
 function calCollied(currentComponentState: ComponentState): {
 	x: number;
 	y: number;
 } {
-	let result = { x: currentComponentState.x, y: currentComponentState.y };
+	let position = { x: currentComponentState.x, y: currentComponentState.y };
 	const closestParams = getClosestComponent(
 		currentComponentState.id,
 		currentComponentState.x,
 		currentComponentState.y,
 		currentComponentState.width,
-		currentComponentState.height
+		currentComponentState.height,
+		mouseDirection as unknown as Direction
 	);
-	console.log("closestParams", closestParams);
+	console.log(
+		"closestParams",
+		closestParams.component.id
+		// closestParams.direction,
+		// "mouseDirection",
+		// mouseDirection.value
+	);
 	isOverlapping.value = closestParams.isOverlapping;
-
-	const index = componentsStorage.value.findIndex((item) => item.id === closestParams.component.id);
-	return result;
+	if (closestParams.direction === "left") {
+		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
+			position.x = closestParams.component.x + closestParams.component.width;
+		}
+	} else if (closestParams.direction === "right") {
+		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
+			position.x = closestParams.component.x - currentComponentState.width;
+		}
+	} else if (closestParams.direction === "top") {
+		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
+			position.y = closestParams.component.y + closestParams.component.height;
+		}
+	} else {
+		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
+			position.y = closestParams.component.y - currentComponentState.height;
+		}
+	}
+	return position;
 }
+
+/**
+ * 二次矫正x轴
+ * @param left
+ * @param currentComponentWidth
+ */
+const secondaryCorrectionLeft = (left: number, currentComponentWidth: number): number => {
+	if (left < 0) {
+		return 0;
+	}
+	if (left + currentComponentWidth > screenWidth!) {
+		return screenWidth! - currentComponentWidth;
+	}
+
+	return left;
+};
 
 /**
  * 获取距离最近的组件
@@ -229,14 +211,23 @@ function calCollied(currentComponentState: ComponentState): {
  * @param y
  * @param width
  * @param height
+ * @param mouseDirection
  */
-const getClosestComponent = (id: string, x: number, y: number, width: number, height: number): ClosestParams => {
+const getClosestComponent = (
+	id: string,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	mouseDirection: Direction
+): ClosestParams => {
+	// 获取当前所有组件
 	const otherComponents = components.value.filter((comp) => comp.id !== id);
 
 	const calculateEdgeDistance = (
 		comp1: { x: number; y: number; width: number; height: number },
 		comp2: { x: number; y: number; width: number; height: number }
-	): { distance: number; direction: string; isOverlapping: boolean } => {
+	): { distance: number; direction: Direction; isOverlapping: boolean } => {
 		const left = comp1.x - (comp2.x + comp2.width);
 		const right = comp1.x + comp1.width - comp2.x;
 		const top = comp1.y - (comp2.y + comp2.height);
@@ -245,16 +236,24 @@ const getClosestComponent = (id: string, x: number, y: number, width: number, he
 		const distances = [
 			{
 				distance: Math.abs(left),
-				direction: "left",
+				direction: "left" as Direction,
 				isOverlapping: left < 0,
 			},
 			{
 				distance: Math.abs(right),
-				direction: "right",
+				direction: "right" as Direction,
 				isOverlapping: right > 0,
 			},
-			{ distance: Math.abs(top), direction: "top", isOverlapping: top < 0 },
-			{ distance: Math.abs(bottom), direction: "bottom", isOverlapping: bottom > 0 },
+			{
+				distance: Math.abs(top),
+				direction: "top" as Direction,
+				isOverlapping: top <= 0,
+			},
+			{
+				distance: Math.abs(bottom),
+				direction: "bottom" as Direction,
+				isOverlapping: bottom > 0,
+			},
 		];
 
 		// 找到最小距离和对应的方向
@@ -268,7 +267,16 @@ const getClosestComponent = (id: string, x: number, y: number, width: number, he
 
 	for (const component of otherComponents) {
 		const distanceData = calculateEdgeDistance({ x, y, width, height }, component);
-		if (distanceData.distance < closestData.distance) {
+
+		// 根据鼠标方向调整距离权重
+		let adjustedDistance = distanceData.distance;
+		if (distanceData.direction === mouseDirection) {
+			adjustedDistance *= 0.75; // 鼠标方向上的距离优先级更高，减少距离值
+		} else if (isOppositeDirection(distanceData.direction, mouseDirection)) {
+			adjustedDistance *= 1.25; // 反方向上的距离优先级降低，增加距离值
+		}
+
+		if (adjustedDistance < closestData.distance) {
 			closestData = distanceData;
 			closestComponent = component;
 		}
@@ -280,6 +288,16 @@ const getClosestComponent = (id: string, x: number, y: number, width: number, he
 		direction: closestData.direction,
 		isOverlapping: closestData.isOverlapping,
 	};
+};
+
+// 判断两个方向是否相反
+const isOppositeDirection = (dir1: Direction, dir2: Direction): boolean => {
+	return (
+		(dir1 === "left" && dir2 === "right") ||
+		(dir1 === "right" && dir2 === "left") ||
+		(dir1 === "top" && dir2 === "bottom") ||
+		(dir1 === "bottom" && dir2 === "top")
+	);
 };
 
 onMounted(() => {

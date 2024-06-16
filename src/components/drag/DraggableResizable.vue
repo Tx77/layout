@@ -16,7 +16,7 @@
 <script setup lang="ts" name="DraggableResizable">
 import type { PropType } from "vue";
 import { ref, reactive, defineEmits, watch } from "vue";
-import { ComponentState } from "./params";
+import { ComponentState, MousePosition } from "./params";
 
 const props = defineProps({
 	componentState: {
@@ -63,6 +63,10 @@ const startTop = ref(0);
 
 const container = ref<HTMLElement | null>(null);
 
+// 初始化上一次的鼠标位置
+let lastMousePosition = ref<MousePosition | null>(null);
+let direction = ref("");
+
 const containerStyle = reactive({
 	id: `${props.componentState.id}`,
 	width: `${props.componentState.width}px`,
@@ -108,7 +112,8 @@ const onMouseDown = (event: MouseEvent) => {
 	containerStyle.zIndex = "3";
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
-		props.setGhostComponent(true, containerStyle);
+		calcMouseMoveDirection(moveEvent);
+		props.setGhostComponent(true, containerStyle, direction.value);
 		//* 使用 requestAnimationFrame 来优化性能
 		requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
@@ -137,6 +142,37 @@ const onMouseDown = (event: MouseEvent) => {
 
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
+};
+
+const calcMouseMoveDirection = (event: MouseEvent) => {
+	// 获取当前鼠标位置
+	const currentPosition: MousePosition = {
+		x: event.clientX,
+		y: event.clientY,
+	};
+
+	// 判断水平和垂直方向
+	if (lastMousePosition.value) {
+		// 计算与上一次位置的差异
+		const deltaX = currentPosition.x - lastMousePosition.value.x;
+		const deltaY = currentPosition.y - lastMousePosition.value.y;
+
+		if (Math.abs(deltaX) > Math.abs(deltaY)) {
+			if (deltaX > 0) {
+				direction.value = "right";
+			} else {
+				direction.value = "left";
+			}
+		} else {
+			if (deltaY > 0) {
+				direction.value = "bottom";
+			} else {
+				direction.value = "top";
+			}
+		}
+	}
+
+	lastMousePosition.value = currentPosition;
 };
 
 /**
