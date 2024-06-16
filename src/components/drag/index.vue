@@ -3,12 +3,7 @@
 		<DraggableResizable
 			v-for="comp in components"
 			:key="comp.id"
-			:id="comp.id"
-			:x="comp.x"
-			:y="comp.y"
-			:width="comp.width"
-			:height="comp.height"
-			:zIndex="comp.zIndex"
+			:componentState="comp"
 			:snapDistance="snapDistance"
 			:ghostStyle="ghostStyle"
 			@drag="handleDrag"
@@ -30,48 +25,15 @@
 //todo 6 当预期位置侵占其他组件时，需要移动被侵占组件的位置
 import { onMounted, reactive, ref } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
-interface ComponentState {
-	id: string;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	zIndex?: number | string;
-	fixed?: boolean;
-}
-interface SnapResult {
-	id?: string;
-	left: number;
-	top: number;
-	width: number;
-	height: number;
-	cx?: number;
-	cy?: number;
-	isSnap: boolean;
-}
-interface GhostStyle {
-	top: number | string;
-	left: number | string;
-	width: number | string;
-	height: number | string;
-	zIndex?: number | string;
-	backgroundColor: string;
-	position: string;
-	transition?: string;
-}
-interface ClosestParams {
-	component: ComponentState;
-	distance: number;
-	direction: string;
-	isOverlapping: boolean;
-}
+import { ClosestParams, ComponentState, ComponentStyle, GhostStyle } from "./params";
+
 const snapDistance = 50;
 const screenWidth = document.querySelector("#app")?.clientWidth;
 const defaultComponents = [
 	{ id: "comp1", x: 0, y: 0, width: screenWidth, height: 200, zIndex: "1", fixed: true },
 	{ id: "comp2", x: 0, y: 200, width: 600, height: 300, zIndex: "1", fixed: false },
 	{ id: "comp3", x: 1200, y: 200, width: 300, height: 600, zIndex: "1", fixed: false },
-	// { id: "comp4", x: 400, y: 400, width: 200, height: 200, zIndex: "1" },
+	{ id: "comp4", x: 400, y: 400, width: 400, height: 600, zIndex: "1", fixed: true },
 ];
 const components = ref<ComponentState[]>([]);
 const componentsStorage = ref<ComponentState[]>([]);
@@ -121,17 +83,14 @@ const handleResize = (id: string, width: number, height: number) => {
 	}
 };
 
-type ComponentStyle = {
-	width: string;
-	height: string;
-	top: string;
-	left: string;
-	id: string;
-};
-
 const getCurrentComponent = (currentComponent: ComponentStyle): ComponentState => {
-	components.value.forEach((item) => {
-		item.zIndex = isGhost.value ? "3" : "1";
+	components.value = components.value.map((item) => {
+		if (item.id === currentComponent.id) {
+			item.zIndex = "3";
+		} else {
+			item.zIndex = "4";
+		}
+		return item;
 	});
 	return Object.assign(currentComp, {
 		id: currentComponent.id,
@@ -142,22 +101,21 @@ const getCurrentComponent = (currentComponent: ComponentStyle): ComponentState =
 	});
 };
 
-const getGhostComponent = (ghostComponent: boolean, currentComponentStyle: ComponentStyle) => {
-	isGhost.value = ghostComponent;
+const getGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyle) => {
+	isGhost.value = isShow;
 	if (isGhost.value && currentComponentStyle) {
 		requestAnimationFrame(() => {
 			const { top, left } = calGhostPosition(currentComponentStyle);
 			ghostStyle.value = {
 				width: currentComponentStyle.width,
 				height: currentComponentStyle.height,
-				top,
-				left,
+				top: top + "px",
+				left: left + "px",
 				zIndex: "1",
 				backgroundColor: "#51252B",
 				position: "absolute",
 				transition: "0.1s ease-out",
 			};
-			// components.value[0].y = 0;
 		});
 	}
 };
@@ -166,164 +124,112 @@ const getGhostComponent = (ghostComponent: boolean, currentComponentStyle: Compo
  * 计算幽灵组件坐标
  * @param currentComponentStyle
  */
-const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number | string; left: number | string } => {
-	let top: string | number;
-	let left: string | number;
+const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number; left: number } => {
+	let top: number;
+	let left: number;
 	const currentComponentLeft = parseInt(currentComponentStyle.left);
 	const currentComponentTop = parseInt(currentComponentStyle.top);
 	const currentComponentWidth = parseInt(currentComponentStyle.width);
 	const currentComponentHeight = parseInt(currentComponentStyle.height);
-	const colliedPosition = calCollied({
+	const formatCurrentComponentStyle: ComponentState = {
 		id: currentComponentStyle.id,
 		x: currentComponentLeft,
 		y: currentComponentTop,
 		width: currentComponentWidth,
 		height: currentComponentHeight,
-	});
-	top = calcGhostTop(currentComponentStyle);
-	left = calcGhostLeft(currentComponentStyle);
-	if (colliedPosition) {
-		if (typeof colliedPosition.y === "number") {
-			top = `${colliedPosition.y}px`;
-		}
-		if (typeof colliedPosition.x === "number") {
-			left = `${colliedPosition.x}px`;
-		}
-	}
+	};
+	const colliedPosition = calCollied(formatCurrentComponentStyle);
+	top = colliedPosition?.y;
+	left = colliedPosition?.x;
+	// top = calcGhostTop(formatCurrentComponentStyle);
+	// left = calcGhostLeft(formatCurrentComponentStyle);
+	// if (colliedPosition) {
+	// 	if (typeof colliedPosition.y === "number") {
+	// 		top = colliedPosition.y;
+	// 	}
+	// 	if (typeof colliedPosition.x === "number") {
+	// 		left = colliedPosition.x;
+	// 	}
+	// }
 	return { top, left };
 };
 
 /**
  * 计算幽灵组件的top
- * @param currentComponentStyle
+ * @param currentComponentState
  */
-const calcGhostTop = (currentComponentStyle: ComponentStyle): number | string => {
-	const closestComponent = findClosestComponent(currentComponentStyle);
+const calcGhostTop = (currentComponentState: ComponentState): number => {
+	const closestComponent = getClosestComponent(
+		currentComponentState.id,
+		currentComponentState.x,
+		currentComponentState.y,
+		currentComponentState.width,
+		currentComponentState.height
+	);
+	if (!ghostStyle.value || isNaN(parseInt(ghostStyle.value.top))) {
+		return currentComponentState.y;
+	}
+
 	// if (closestComponent) {
 	// 	const ghostTop = closestComponent.componentStyle.height + closestComponent.componentStyle.y;
 	// 	return ghostTop;
 	// }
-	return 0;
+	return currentComponentState.y;
 };
 
 /**
  * 计算幽灵组件的left
- * @param currentComponentStyle
+ * @param currentComponentState
  */
-const calcGhostLeft = (currentComponentStyle: ComponentStyle): number | string => {
-	const currentComponent = components.value.filter((item) => item.id === currentComponentStyle.id);
+const calcGhostLeft = (currentComponentState: ComponentState): number => {
+	const currentComponent = components.value.filter((item) => item.id === currentComponentState.id);
 	if (currentComponent) {
 		const beforeLeft = currentComponent[0].x;
-		const currentComponentLeft = parseInt(currentComponentStyle.left);
-		const currentComponentTop = parseInt(currentComponentStyle.top);
-		const currentComponentWidth = parseInt(currentComponentStyle.width);
-		const currentComponentHeight = parseInt(currentComponentStyle.height);
-		// const colliedLeft = calCollied({
-		// 	id: currentComponentStyle.id,
-		// 	x: currentComponentLeft,
-		// 	y: currentComponentTop,
-		// 	width: currentComponentWidth,
-		// 	height: currentComponentHeight,
-		// });
-		// //* 自动吸附
-		// if (colliedLeft) {
-		// 	return `${colliedLeft}px`;
-		// }
-
-		if (currentComponentLeft < 0) {
+		if (currentComponentState.x < 0) {
 			return 0;
 		}
-		if (currentComponentLeft + currentComponentWidth >= parentWidth.value) {
-			return `${parentWidth.value - currentComponentWidth}px`;
+		if (currentComponentState.x + currentComponentState.width >= parentWidth.value) {
+			return parentWidth.value - currentComponentState.width;
 		}
-		if (currentComponentLeft <= ghostStep.value) {
+		if (currentComponentState.x <= ghostStep.value) {
 			return 0;
 		}
 
-		if (Math.abs(currentComponentLeft - beforeLeft) > ghostStep.value) {
-			return `${beforeLeft + Math.round((currentComponentLeft - beforeLeft) / ghostStep.value) * ghostStep.value}px`;
+		if (Math.abs(currentComponentState.x - beforeLeft) > ghostStep.value) {
+			return beforeLeft + Math.round((currentComponentState.x - beforeLeft) / ghostStep.value) * ghostStep.value;
 		}
-		return `${beforeLeft}px`;
+		return beforeLeft;
 	}
-	return currentComponentStyle.left;
+	return currentComponentState.x;
 };
 
-function calCollied(curerntComponent: { id: string; x: number; y: number; width: number; height: number }): {
-	x?: number;
-	y?: number;
-} | null {
+function calCollied(currentComponentState: ComponentState): {
+	x: number;
+	y: number;
+} {
+	let result = { x: currentComponentState.x, y: currentComponentState.y };
 	const closestParams = getClosestComponent(
-		curerntComponent.id,
-		curerntComponent.x,
-		curerntComponent.y,
-		curerntComponent.width,
-		curerntComponent.height
+		currentComponentState.id,
+		currentComponentState.x,
+		currentComponentState.y,
+		currentComponentState.width,
+		currentComponentState.height
 	);
-	// console.log("closestParams", closestParams);
+	console.log("closestParams", closestParams);
 	isOverlapping.value = closestParams.isOverlapping;
-	let result: {
-		x?: number;
-		y?: number;
-	} | null;
 
 	const index = componentsStorage.value.findIndex((item) => item.id === closestParams.component.id);
-	if (closestParams.distance <= ghostStep.value) {
-		if (closestParams.direction === "left") {
-			if (closestParams.isOverlapping) {
-				result = {
-					x: closestParams.component.x + closestParams.component.width,
-				};
-
-				components.value[index].y = componentsStorage.value[index].y + curerntComponent.height;
-			} else {
-				result = {
-					x: closestParams.component.x + closestParams.component.width,
-				};
-			}
-		}
-		if (closestParams.direction === "right") {
-			if (closestParams.isOverlapping) {
-				result = {
-					x: closestParams.component.x - curerntComponent.width,
-					// y: closestParams.component.height + closestParams.component.y,
-				};
-			} else {
-				result = {
-					x: closestParams.component.x - curerntComponent.width,
-				};
-			}
-		}
-	} else {
-		result = null;
-	}
 	return result;
 }
 
 /**
- * 查询距离最近的组件
- * @param newItem
+ * 获取距离最近的组件
+ * @param id
+ * @param x
+ * @param y
+ * @param width
+ * @param height
  */
-function findClosestComponent(newItem: ComponentStyle): { componentStyle: ComponentState } | null {
-	let closestComponent: {
-		componentStyle: ComponentState;
-		distance: number;
-	} | null = null;
-
-	components.value.forEach((component) => {
-		const componentBottom = component.y + component.height;
-		const newItemTop = parseInt(newItem.top);
-		const distance = Math.abs(componentBottom - newItemTop);
-
-		if (newItemTop > componentBottom) {
-			if (!closestComponent || distance < closestComponent.distance) {
-				closestComponent = { componentStyle: component, distance };
-			}
-		}
-	});
-
-	return closestComponent;
-}
-
 const getClosestComponent = (id: string, x: number, y: number, width: number, height: number): ClosestParams => {
 	const otherComponents = components.value.filter((comp) => comp.id !== id);
 
@@ -340,15 +246,15 @@ const getClosestComponent = (id: string, x: number, y: number, width: number, he
 			{
 				distance: Math.abs(left),
 				direction: "left",
-				isOverlapping: left <= -ghostStep.value,
+				isOverlapping: left < 0,
 			},
 			{
 				distance: Math.abs(right),
 				direction: "right",
-				isOverlapping: right >= ghostStep.value,
+				isOverlapping: right > 0,
 			},
-			{ distance: Math.abs(top), direction: "top", isOverlapping: top >= 0 },
-			{ distance: Math.abs(bottom), direction: "bottom", isOverlapping: bottom >= 0 },
+			{ distance: Math.abs(top), direction: "top", isOverlapping: top < 0 },
+			{ distance: Math.abs(bottom), direction: "bottom", isOverlapping: bottom > 0 },
 		];
 
 		// 找到最小距离和对应的方向
