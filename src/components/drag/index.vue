@@ -25,7 +25,7 @@
 //todo 6 当预期位置侵占其他组件时，需要移动被侵占组件的位置
 import { onMounted, reactive, ref } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
-import { ClosestParams, ComponentState, ComponentStyle, Direction, GhostStyle } from "./params";
+import { ClosestParams, ComponentState, ComponentStyle, Direction, GhostStyle, Position } from "./params";
 
 const snapDistance = 50;
 const screenWidth = document.querySelector("#app")?.clientWidth;
@@ -145,32 +145,91 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	top = ghostPosition.y;
 	left = ghostPosition.x;
 	left = secondaryCorrectionLeft(left, currentComponentLeft, currentComponentWidth);
-	const closest = findClosestYComponent(currentComponentStyle.id, currentComponentTop);
-	top = closest.y + closest.height;
+	const closests = checkIsOverlapperd(formatCurrentComponentStyle);
+	// console.log("closests", closests[0]);
+	if (closests.length === 0) {
+		// const closest = findClosestYComponent(currentComponentStyle.id, currentComponentTop, currentComponentLeft);
+		// top = closest.y + closest.height;
+		const adjustPosition = adjustGhostPosition(left, top, formatCurrentComponentStyle);
+		// left = adjustPosition.x;
+		top = adjustPosition.y;
+	} else {
+		top = closests[0].y + closests[0].height;
+	}
+
 	return { top, left };
 };
 
-const findMinY = (): number => {
-	return components.value.reduce((minY, component) => {
-		return component.y < minY ? component.y + component.height : minY;
-	}, Infinity);
+/**
+ * 检查幽灵组件是否与真实组件碰撞并调整位置
+ * @param ghostX
+ * @param ghostY
+ * @param targetComp
+ */
+const adjustGhostPosition = (ghostX: number, ghostY: number, targetComp: ComponentState): Position => {
+	const intersectComponents = components.value
+		.filter((comp) => comp.id !== targetComp.id)
+		.filter((item) => isIntersecting(item, Object.assign(targetComp, { x: ghostX, y: ghostY })));
+	let finalPosition = { x: ghostX, y: ghostY };
+	// console.log("intersectComponents", intersectComponents[0]);
+	if (intersectComponents.length > 0) {
+		const finalX = intersectComponents[0].x;
+		const finalY = intersectComponents[0].y + intersectComponents[0].height;
+		finalPosition = { x: finalX, y: finalY };
+	}
+	return finalPosition;
 };
 
-function findClosestYComponent(id: string, clientY: number): ComponentState {
-	const otherComponents = components.value.filter((comp) => comp.id !== id);
+const findMinY = (id: string): number => {
+	return components.value
+		.filter((item) => item.id !== id)
+		.reduce((minY, component) => {
+			return component.y < minY ? component.y + component.height : minY;
+		}, Infinity);
+};
+
+function findClosestYComponent(id: string, clientY: number, clientX: number): ComponentState {
+	const otherComponents = components.value
+		.filter((comp) => comp.id !== id)
+		.filter((item) => item.y + item.height <= clientY);
 	return otherComponents.reduce((closest, current) => {
 		// 计算 current 组件的 y + height
 		const currentYHeightSum = current.y + current.height;
 		// 计算 closest 组件的 y + height
 		const closestYHeightSum = closest.y + closest.height;
+
 		// 计算 current 和 closest 与 clientY 的差值
-		const currentDifference = Math.abs(currentYHeightSum - clientY);
-		const closestDifference = Math.abs(closestYHeightSum - clientY);
+		const currentYSumDifference = Math.abs(currentYHeightSum - clientY);
+		const closestYSumDifference = Math.abs(closestYHeightSum - clientY);
+
+		// const currentXWidthSum = current.x + current.width;
+		// const closestXWidthSum = closest.x + current.width;
+
+		const currentXSumDifference = Math.abs(current.x - clientX);
+		const closestXSumDifference = Math.abs(closest.x - clientX);
 
 		// 比较差值，返回差值更小的组件
-		return currentDifference < closestDifference ? current : closest;
+		return currentYSumDifference <= closestYSumDifference && currentXSumDifference <= closestXSumDifference
+			? current
+			: closest;
 	});
 }
+
+const checkIsOverlapperd = ({ id, x, y, width, height }: ComponentState): ComponentState[] => {
+	return components.value
+		.filter((comp) => comp.id !== id)
+		.filter((item) => isIntersecting(item, { id, x, y, width, height }));
+};
+
+function isIntersecting(item1: ComponentState, item2: ComponentState): boolean {
+	return (
+		item1.x < item2.x + item2.width &&
+		item1.x + item1.width > item2.x &&
+		item1.y < item2.y + item2.height &&
+		item1.y + item1.height > item2.y
+	);
+}
+
 /**
  * 计算幽灵组件位置
  * @param currentComponentState
@@ -181,7 +240,7 @@ const calcGhostPosition = (
 	x: number;
 	y: number;
 } => {
-	let position = { x: currentComponentState.x, y: findMinY() };
+	let position = { x: currentComponentState.x, y: findMinY(currentComponentState.id) };
 	const closestParams = getClosestComponent(
 		currentComponentState.id,
 		currentComponentState.x,

@@ -32,7 +32,7 @@ export type ComponentStyle = {
   id: string;
 };
 
-export interface MousePosition {
+export interface Position {
   x: number;
   y: number;
 }

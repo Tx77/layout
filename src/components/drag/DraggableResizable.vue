@@ -16,7 +16,7 @@
 <script setup lang="ts" name="DraggableResizable">
 import type { PropType } from "vue";
 import { ref, reactive, defineEmits, watch } from "vue";
-import { ComponentState, MousePosition } from "./params";
+import { ComponentState, Position } from "./params";
 
 const props = defineProps({
 	componentState: {
@@ -64,7 +64,7 @@ const startTop = ref(0);
 const container = ref<HTMLElement | null>(null);
 
 // 初始化上一次的鼠标位置
-let lastMousePosition = ref<MousePosition | null>(null);
+let lastMousePosition = ref<Position | null>(null);
 let direction = ref("");
 
 const containerStyle = reactive({
@@ -150,7 +150,7 @@ const onMouseDown = (event: MouseEvent) => {
 
 const calcMouseMoveDirection = (event: MouseEvent) => {
 	// 获取当前鼠标位置
-	const currentPosition: MousePosition = {
+	const currentPosition: Position = {
 		x: event.clientX,
 		y: event.clientY,
 	};
