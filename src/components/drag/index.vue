@@ -37,6 +37,7 @@ const defaultComponents = [
 ];
 const components = ref<ComponentState[]>([]);
 const componentsStorage = ref<ComponentState[]>([]);
+const intersectComponents = ref<ComponentState[]>([]);
 const currentComp = reactive<ComponentState>({
 	id: "",
 	x: 0,
@@ -85,14 +86,6 @@ const handleResize = (id: string, width: number, height: number) => {
 };
 
 const getCurrentComponent = (currentComponent: ComponentStyle): ComponentState => {
-	components.value = components.value.map((item) => {
-		if (item.id === currentComponent.id) {
-			item.zIndex = "3";
-		} else {
-			item.zIndex = "4";
-		}
-		return item;
-	});
 	return Object.assign(currentComp, {
 		id: currentComponent.id,
 		x: parseInt(currentComponent.left),
@@ -102,9 +95,25 @@ const getCurrentComponent = (currentComponent: ComponentStyle): ComponentState =
 	});
 };
 
+/**
+ * 设置组件zIndex
+ * @param currentCompId
+ */
+const setComponentsZIndex = (currentCompId: string) => {
+	components.value = components.value.map((item) => {
+		if (item.id === currentCompId) {
+			item.zIndex = "4";
+		} else {
+			item.zIndex = item.fixed ? "2" : "3";
+		}
+		return item;
+	});
+};
+
 const getGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyle, lastMouseDirection: Direction) => {
 	isGhost.value = isShow;
 	mouseDirection.value = lastMouseDirection;
+	setComponentsZIndex(currentComponentStyle.id);
 	if (isGhost.value && currentComponentStyle) {
 		requestAnimationFrame(() => {
 			const { top, left } = calGhostPosition(currentComponentStyle);
@@ -147,14 +156,48 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	left = secondaryCorrectionLeft(left, currentComponentLeft, currentComponentWidth);
 	const closests = checkIsOverlapperd(formatCurrentComponentStyle);
 	// console.log("closests", closests[0]);
-	if (closests.length === 0) {
-		// const closest = findClosestYComponent(currentComponentStyle.id, currentComponentTop, currentComponentLeft);
-		// top = closest.y + closest.height;
-		const adjustPosition = adjustGhostPosition(left, top, formatCurrentComponentStyle);
-		// left = adjustPosition.x;
-		top = adjustPosition.y;
+	if (closests.length > 0) {
+		const index = intersectComponents.value.findIndex((item) => item.id === closests[0].id);
+		if (index < 0) {
+			intersectComponents.value.push(closests[0]);
+		}
+		if (intersectComponents.value.length > 0) {
+			components.value = components.value.map((item) => {
+				for (let i = intersectComponents.value.length - 1; i >= 0; i--) {
+					const comp = intersectComponents.value[i];
+					if (comp.id === item.id && comp.id !== closests[0].id && !isIntersecting(comp, formatCurrentComponentStyle)) {
+						item.y = findMinY(item.id);
+						intersectComponents.value.splice(i, 1);
+					}
+				}
+				return item;
+			});
+		}
+		components.value
+			.filter((item) => item.id !== currentComponentStyle.id && !item.fixed && item.id !== closests[0].id)
+			.forEach((item) => {
+				if (item.y === closests[0].y + closests[0].height) {
+					item.y += closests[0].height + closests[0].y;
+				}
+			});
+		closests[0].y = currentComponentHeight + top;
 	} else {
-		top = closests[0].y + closests[0].height;
+		if (intersectComponents.value.length > 0) {
+			components.value = components.value.map((item) => {
+				intersectComponents.value.forEach((comp) => {
+					if (item.id === comp.id) {
+						item.y = findMinY(item.id);
+					}
+				});
+				return item;
+			});
+			intersectComponents.value = [];
+		}
+
+		const ghostClosests = checkIsOverlapperd(Object.assign(formatCurrentComponentStyle, { x: left, y: top }));
+		if (ghostClosests.length > 0) {
+			top += ghostClosests[0].height;
+		}
 	}
 
 	return { top, left };
@@ -217,7 +260,7 @@ function findClosestYComponent(id: string, clientY: number, clientX: number): Co
 
 const checkIsOverlapperd = ({ id, x, y, width, height }: ComponentState): ComponentState[] => {
 	return components.value
-		.filter((comp) => comp.id !== id)
+		.filter((comp) => comp.id !== id && !comp.fixed)
 		.filter((item) => isIntersecting(item, { id, x, y, width, height }));
 };
 
@@ -241,39 +284,30 @@ const calcGhostPosition = (
 	y: number;
 } => {
 	let position = { x: currentComponentState.x, y: findMinY(currentComponentState.id) };
-	const closestParams = getClosestComponent(
-		currentComponentState.id,
-		currentComponentState.x,
-		currentComponentState.y,
-		currentComponentState.width,
-		currentComponentState.height,
-		mouseDirection as unknown as Direction
-	);
-	// console.log("closestParams", closestParams.component.id);
-	isOverlapping.value = closestParams.isOverlapping;
-	if (closestParams.direction === "left") {
-		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
-			position.x = closestParams.component.x + closestParams.component.width;
-		}
-	} else if (closestParams.direction === "right") {
-		if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
-			position.x = closestParams.component.x - currentComponentState.width;
-		}
-	}
-	// else if (closestParams.direction === "top") {
+	// const closestParams = getClosestComponent(
+	// 	currentComponentState.id,
+	// 	currentComponentState.x,
+	// 	currentComponentState.y,
+	// 	currentComponentState.width,
+	// 	currentComponentState.height,
+	// 	mouseDirection as unknown as Direction
+	// );
+	// // console.log("closestParams", closestParams.component.id);
+	// isOverlapping.value = closestParams.isOverlapping;
+	// if (closestParams.direction === "left") {
 	// 	if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
-	// 		position.y = closestParams.component.y + closestParams.component.height;
+	// 		position.x = closestParams.component.x + closestParams.component.width;
 	// 	}
-	// } else {
+	// } else if (closestParams.direction === "right") {
 	// 	if (closestParams.distance <= ghostStep.value || closestParams.isOverlapping) {
-	// 		position.y = closestParams.component.y - currentComponentState.height;
+	// 		position.x = closestParams.component.x - currentComponentState.width;
 	// 	}
 	// }
 	return position;
 };
 
 /**
- * 二次矫正x轴
+ * 二次矫正幽灵组件x轴
  * @param left
  * @param currentComponentLeft
  * @param currentComponentWidth
@@ -321,8 +355,6 @@ const getClosestComponent = (
 	): { distance: number; direction: Direction; isOverlapping: boolean } => {
 		const left = comp1.x - (comp2.x + comp2.width);
 		const right = comp1.x + comp1.width - comp2.x;
-		const top = comp1.y - (comp2.y + comp2.height);
-		const bottom = comp1.y + comp1.height - comp2.y;
 
 		const distances = [
 			{
@@ -334,16 +366,6 @@ const getClosestComponent = (
 				distance: Math.abs(right),
 				direction: "right" as Direction,
 				isOverlapping: right > 0,
-			},
-			{
-				distance: Math.abs(top),
-				direction: "top" as Direction,
-				isOverlapping: top <= 0,
-			},
-			{
-				distance: Math.abs(bottom),
-				direction: "bottom" as Direction,
-				isOverlapping: bottom > 0,
 			},
 		];
 

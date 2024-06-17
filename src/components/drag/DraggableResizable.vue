@@ -113,7 +113,6 @@ const onMouseDown = (event: MouseEvent) => {
 	startTop.value = parseInt(containerStyle.top);
 	props.setCurrentComponent(containerStyle);
 	props.setGhostComponent(true, containerStyle);
-	containerStyle.zIndex = "3";
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
 		calcMouseMoveDirection(moveEvent);
@@ -127,6 +126,7 @@ const onMouseDown = (event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
+		props.setGhostComponent(false, containerStyle);
 		requestAnimationFrame(() => {
 			updatePosition(parseInt(props.ghostStyle.left), parseInt(props.ghostStyle.top), true);
 			emit("drag", props.componentState.id, parseInt(containerStyle.left), parseInt(containerStyle.top));
@@ -134,14 +134,7 @@ const onMouseDown = (event: MouseEvent) => {
 		mouseCursor.value = "grab";
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
-		if (isCollied.value) {
-			containerStyle.zIndex = "3";
-		} else {
-			containerStyle.zIndex = "1";
-			isCollied.value = false;
-		}
 		containerStyle.transition = "none";
-		props.setGhostComponent(false, containerStyle);
 	};
 
 	document.addEventListener("mousemove", onMouseMove);
