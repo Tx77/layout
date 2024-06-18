@@ -85,6 +85,13 @@ watch(
 	}
 );
 
+watch(
+	() => props.componentState.zIndex,
+	(val) => {
+		containerStyle.zIndex = val;
+	}
+);
+
 const updatePosition = (left: number, top: number, snap = false) => {
 	isSnap.value = snap;
 	if (isSnap.value) {

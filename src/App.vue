@@ -5,7 +5,7 @@ import DragAndResize from "./components/drag/index.vue";
 
 <template>
 	<div>
-		<!-- <Layout/> -->
+		<!-- <Layout /> -->
 		<DragAndResize />
 	</div>
 </template>
