@@ -26,7 +26,7 @@ const screenWidth = document.querySelector("#app")?.clientWidth;
 const defaultComponents = [
 	{ id: "comp1", x: 0, y: 0, width: 2560, height: 200, zIndex: "2", fixed: true },
 	{ id: "comp2", x: 537, y: 200, width: 600, height: 300, zIndex: "3", fixed: false },
-	// { id: "comp3", x: 620, y: 500, width: 400, height: 200, zIndex: "3", fixed: false },
+	{ id: "comp3", x: 620, y: 500, width: 400, height: 200, zIndex: "3", fixed: false },
 	{ id: "comp4", x: 630, y: 700, width: 400, height: 400, zIndex: "4", fixed: false },
 ];
 const components = ref<ComponentState[]>([]);
@@ -46,8 +46,6 @@ const ghostStep = ref(0);
 const isGhost = ref(false);
 const mouseDirection = ref<Direction>();
 const ghostStyle = ref<GhostStyle>();
-const ghostTop = ref(0);
-const ghostLeft = ref(0);
 
 const loadState = () => {
 	const savedState = localStorage.getItem("componentsState");
@@ -157,50 +155,13 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		width: currentComponentWidth,
 		height: currentComponentHeight,
 	};
-	const ghostPosition = calcGhostPosition(formatCurrentComponentStyle);
-	ghostTop.value = ghostPosition.y;
-	ghostLeft.value = ghostPosition.x;
-	ghostTop.value = findClosestY(formatCurrentComponentStyle);
-	const closestComponents = findIntersectComponents(formatCurrentComponentStyle);
-	const closestComponent = closestComponents[0];
-	// console.log("closestComponents", closestComponent);
-	//* 碰撞中
-	if (closestComponents && closestComponents.length > 0) {
-		intersectComponent.value = closestComponent;
-		const currentComponentStatic = componentsStorage.value.filter((item) => item.id === currentComponentStyle.id)[0];
-		const closestComponentStatic = componentsStorage.value.filter((item) => item.id === closestComponent.id)[0];
-		if (currentComponentTop <= closestComponent.y) {
-			ghostTop.value = closestComponentStatic.y;
-			closestComponent.y = ghostTop.value + currentComponentHeight;
-		} else {
-			ghostTop.value = closestComponent.y + closestComponent.height;
-		}
-	}
-	//* 非碰撞
-	else {
-		if (
-			intersectComponent.value &&
-			(intersectComponent.value.x > ghostLeft.value + currentComponentWidth ||
-				intersectComponent.value.x + intersectComponent.value.width < ghostLeft.value)
-		) {
-			const closestComponentStatic = componentsStorage.value.filter(
-				(item) => item.id === intersectComponent.value!.id
-			)[0];
-			intersectComponent.value.y = closestComponentStatic.y;
-		}
-	}
-	ghostLeft.value = secondaryCorrectionLeft(ghostLeft.value, currentComponentLeft, currentComponentWidth);
-	return { top: ghostTop.value, left: ghostLeft.value };
-};
+	let ghostTop = currentComponentTop;
+	let ghostLeft = currentComponentLeft;
+	ghostTop = findClosestY(formatCurrentComponentStyle);
 
-watch(
-	() => ghostTop.value,
-	(val, oldVal) => {
-		if (intersectComponent.value && val !== oldVal) {
-			// console.log("ghostTop", val);
-		}
-	}
-);
+	ghostLeft = secondaryCorrectionLeft(ghostLeft, currentComponentLeft, currentComponentWidth);
+	return { top: ghostTop, left: ghostLeft };
+};
 
 /**
  * 计算幽灵组件位置
