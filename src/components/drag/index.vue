@@ -161,8 +161,6 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	ghostTop.value = ghostPosition.y;
 	ghostLeft.value = ghostPosition.x;
 	ghostTop.value = findClosestY(formatCurrentComponentStyle);
-	// console.log("ghostTop.value", ghostTop.value);
-
 	const closestComponents = findIntersectComponents(formatCurrentComponentStyle);
 	const closestComponent = closestComponents[0];
 	// console.log("closestComponents", closestComponent);
@@ -175,7 +173,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 			ghostTop.value = closestComponentStatic.y;
 			closestComponent.y = ghostTop.value + currentComponentHeight;
 		} else {
-			// ghostTop.value = closestComponent.y + closestComponent.height;
+			ghostTop.value = closestComponent.y + closestComponent.height;
 		}
 	}
 	//* 非碰撞
@@ -197,8 +195,10 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 
 watch(
 	() => ghostTop.value,
-	(val) => {
-		// console.log("ghostVal", val);
+	(val, oldVal) => {
+		if (intersectComponent.value && val !== oldVal) {
+			// console.log("ghostTop", val);
+		}
 	}
 );
 
