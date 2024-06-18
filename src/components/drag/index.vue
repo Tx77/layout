@@ -31,7 +31,6 @@ const defaultComponents = [
 ];
 const components = ref<ComponentState[]>([]);
 const componentsStorage = ref<ComponentState[]>([]);
-const intersectComponent = ref<ComponentState | null>(null);
 const otherComponents = ref<ComponentState[]>([]);
 const currentComp = reactive<ComponentState>({
 	id: "",
@@ -44,7 +43,6 @@ const parentWidth = ref(0);
 const parentHeight = ref(0);
 const ghostStep = ref(0);
 const isGhost = ref(false);
-const mouseDirection = ref<Direction>();
 const ghostStyle = ref<GhostStyle>();
 
 const loadState = () => {
@@ -67,9 +65,9 @@ const handleDrag = (id: string, x: number, y: number) => {
 	if (component) {
 		component.x = x;
 		component.y = y;
+		intersectComponent.value = null;
 		saveState();
 		resetComponentsY();
-		intersectComponent.value = null;
 	}
 };
 
@@ -107,9 +105,8 @@ const setComponentsZIndex = (currentCompId: string) => {
 	});
 };
 
-const getGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyle, lastMouseDirection: Direction) => {
+const getGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyle) => {
 	isGhost.value = isShow;
-	mouseDirection.value = lastMouseDirection;
 	setComponentsZIndex(currentComponentStyle.id);
 	otherComponents.value = components.value.filter((item) => item.id !== currentComponentStyle.id);
 	if (isGhost.value && currentComponentStyle) {
@@ -139,6 +136,8 @@ const resetComponentsY = () => {
 	saveState();
 };
 
+const intersectComponent = ref<ComponentState>();
+
 /**
  * 计算幽灵组件坐标
  * @param currentComponentStyle
@@ -155,12 +154,62 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		width: currentComponentWidth,
 		height: currentComponentHeight,
 	};
-	let ghostTop = currentComponentTop;
-	let ghostLeft = currentComponentLeft;
+	const ghostPosition = calcGhostPosition(formatCurrentComponentStyle);
+	let ghostTop = ghostPosition.y;
+	let ghostLeft = ghostPosition.x;
 	ghostTop = findClosestY(formatCurrentComponentStyle);
+
+	const filterComponents = components.value.filter((item) => item.id !== currentComponentStyle.id && !item.fixed);
+	filterComponents.forEach((item) => {
+		if (item.x < ghostLeft + currentComponentWidth && item.x + item.width > ghostLeft) {
+			intersectComponent.value = item;
+			// const affectedComponents = findAffectedComponents(item, filterComponents).concat(item);
+			// console.log("affectedComponents", affectedComponents);
+			if (
+				currentComponentHeight >= item.height &&
+				currentComponentTop + currentComponentHeight >= item.y + item.height
+			) {
+				console.log("++++++");
+				item.y = ghostTop;
+				ghostTop = item.y + item.height;
+			} else if (currentComponentHeight < item.height && currentComponentTop >= item.y) {
+				console.log("========");
+				item.y = ghostTop;
+				ghostTop = item.y + item.height;
+			} else {
+				console.log("%%%%%", item.id);
+				item.y = ghostTop + currentComponentHeight;
+			}
+		} else {
+			if (intersectComponent.value) {
+				componentsStorage.value.forEach((comp) => {
+					if (
+						comp.id === intersectComponent.value!.id &&
+						(intersectComponent.value!.x > ghostLeft + currentComponentWidth ||
+							intersectComponent.value!.x + intersectComponent.value!.width < ghostLeft)
+					) {
+						console.log("intersectComponent", intersectComponent.value!.id);
+						intersectComponent.value!.y = comp.y;
+					}
+				});
+			}
+		}
+	});
 
 	ghostLeft = secondaryCorrectionLeft(ghostLeft, currentComponentLeft, currentComponentWidth);
 	return { top: ghostTop, left: ghostLeft };
+};
+
+const findAffectedComponents = (comp: ComponentState, filterComponents: ComponentState[]): ComponentState[] => {
+	let affectedComponents: ComponentState[] = [];
+	filterComponents.forEach((item) => {
+		if (item.y === comp.y + comp.height && item.x < comp.x + comp.width && item.x + item.width > comp.x) {
+			affectedComponents.push(item);
+			affectedComponents = affectedComponents.concat(findAffectedComponents(item, filterComponents));
+		}
+	});
+
+	return affectedComponents;
 };
 
 /**
