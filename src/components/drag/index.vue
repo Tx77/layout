@@ -17,9 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
-import { ComponentState, ComponentStyle, Direction, GhostStyle } from "./params";
+import { ComponentState, ComponentStyle, Direction, GhostStyle, ClosestParams } from "./params";
 
 const snapDistance = 50;
 const screenWidth = document.querySelector("#app")?.clientWidth;
@@ -136,6 +136,42 @@ const resetComponentsY = () => {
 	saveState();
 };
 
+/**
+ * 获取距离最近的组件
+ * @param currentComponent
+ */
+interface DistanceResult {
+	component: ComponentState;
+	distance: number;
+	direction: "left" | "right";
+}
+
+/**
+ * 找到距离当前组件X轴最近的组件
+ * @param currentComponent
+ */
+function findNearestXComponent(currentComponent: ComponentState): DistanceResult | null {
+	const nearestComponents = components.value.filter((item) => item.id !== currentComponent.id && !item.fixed);
+	let nearestComponent: DistanceResult | null = null;
+	for (const component of nearestComponents) {
+		if (component.id === currentComponent.id) continue;
+		const leftDistance = currentComponent.x - (component.x + component.width);
+		const rightDistance = component.x - (currentComponent.x + currentComponent.width);
+
+		if (leftDistance > 0) {
+			if (!nearestComponent || leftDistance < nearestComponent.distance) {
+				nearestComponent = { component, distance: leftDistance, direction: "left" };
+			}
+		} else if (rightDistance > 0) {
+			if (!nearestComponent || rightDistance < nearestComponent.distance) {
+				nearestComponent = { component, distance: rightDistance, direction: "right" };
+			}
+		}
+	}
+
+	return nearestComponent;
+}
+
 const intersectComponents = ref<ComponentState[]>([]);
 
 /**
@@ -147,17 +183,17 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	const currentComponentTop = parseInt(currentComponentStyle.top);
 	const currentComponentWidth = parseInt(currentComponentStyle.width);
 	const currentComponentHeight = parseInt(currentComponentStyle.height);
-	const formatCurrentComponentStyle: ComponentState = {
+	const currentComponentState: ComponentState = {
 		id: currentComponentStyle.id,
 		x: currentComponentLeft,
 		y: currentComponentTop,
 		width: currentComponentWidth,
 		height: currentComponentHeight,
 	};
-	const ghostPosition = calcGhostPosition(formatCurrentComponentStyle);
+	const ghostPosition = calcGhostPosition(currentComponentState);
 	let ghostTop = ghostPosition.y;
 	let ghostLeft = ghostPosition.x;
-	ghostTop = findClosestY(formatCurrentComponentStyle);
+	ghostTop = findClosestY(currentComponentState);
 	/**
 	 * 幽灵组件是否在组件x轴范围内
 	 * @param comp
@@ -167,15 +203,25 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	};
 	const currentComponentStorage = componentsStorage.value.filter((item) => item.id === currentComponentStyle.id)[0];
 	const filterComponents = components.value.filter((item) => item.id !== currentComponentStyle.id && !item.fixed);
-	let affectedComponents: ComponentState[] = [];
 	let targetComponent: ComponentState | null = null;
-	// const overlappedComponents = findOverlappedComponents(formatCurrentComponentStyle);
+	// const overlappedComponents = findOverlappedComponents(currentComponentState);
 	// console.log(overlappedComponents);
 	// if (overlappedComponents.length > 0) {
 	// } else {
 	// 	console.log("====");
 	// }
 
+	const nearestComponent = findNearestXComponent(currentComponentState);
+
+	if (nearestComponent && nearestComponent.distance <= ghostStep.value) {
+		// console.log(nearestComponent.component.id, nearestComponent.direction, nearestComponent.distance);
+		if (nearestComponent.direction === "left") {
+			ghostLeft = nearestComponent.component.x + nearestComponent.component.width;
+		} else {
+			ghostLeft = nearestComponent.component.x - currentComponentWidth;
+		}
+	}
+	//* 过滤掉固定组件以及当前组件，进入组件重新定位的逻辑
 	filterComponents.forEach((item) => {
 		//! 幽灵组件定位规则：
 		//! 1、幽灵组件永远不会和组件重叠
@@ -197,10 +243,10 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 			} else {
 				intersectComponents.value.push(item);
 			}
-			affectedComponents = findAffectedComponents(
-				intersectComponentStorage,
-				componentsStorage.value.filter((item) => item.id !== currentComponentStyle.id && !item.fixed)
-			);
+			// affectedComponents = findAffectedComponents(
+			// 	intersectComponentStorage,
+			// 	componentsStorage.value.filter((item) => item.id !== currentComponentStyle.id && !item.fixed)
+			// );
 			// console.log(currentComponentStorage.y, intersectComponentStorage.y);
 			//*【初始值判断】---- 当前组件y轴【初始值】与重叠组件【初始值】处于同一高度
 			if (currentComponentStorage.y === intersectComponentStorage.y) {
@@ -242,7 +288,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 						}
 					} else {
 						if (currentBetweenItem()) {
-							console.log("===");
+							// console.log("===");
 							item.y = currentComponentStorage.y + currentComponentStorage.height;
 						} else {
 							itemDown();
@@ -263,8 +309,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 				}
 			}
 			//*【初始值判断】---- 当前组件y轴【初始值】低于重叠组件【初始值】
-			else {
-				//* 当前组件【初始值】的y轴高度 + height 处于重叠组件【初始值】y轴高度 + height之间，需要将重叠组件移动到当前组件【初始值】的底部
+			if (currentComponentStorage.y > intersectComponentStorage.y) {
 				const itemBetweenCurrent = () => {
 					return (
 						currentComponentStorage.y < intersectComponentStorage.y + intersectComponentStorage.height &&
@@ -273,7 +318,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 					);
 				};
 				if (itemBetweenCurrent()) {
-					console.log("====", intersectComponentStorage.id);
+					// console.log("====", intersectComponentStorage.id);
 					ghostTop = intersectComponentStorage.y + intersectComponentStorage.height;
 				} else {
 					if (currentComponentTop < item.y + item.height) {
@@ -301,6 +346,25 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		}
 	});
 
+	//* 判断受重叠组件重新定位而影响的其他组件
+	if (targetComponent) {
+		// console.log(targetComponent);
+		const isAffectedByTargetComponent = (comp: ComponentState) => {
+			return (
+				targetComponent!.y + targetComponent!.height >= comp.y &&
+				targetComponent!.y + targetComponent!.height <= comp.y + comp.height
+			);
+		};
+		const affectedComponents = filterComponents.filter((item) => item.id !== targetComponent?.id);
+		if (affectedComponents.length > 0) {
+			affectedComponents.forEach((item) => {
+				if (isAffectedByTargetComponent(item)) {
+					console.log(item.id, targetComponent!.y + targetComponent!.height);
+					// item.y += targetComponent!.y + targetComponent!.height;
+				}
+			});
+		}
+	}
 	ghostLeft = secondaryCorrectionLeft(ghostLeft, currentComponentLeft, currentComponentWidth);
 	return { top: ghostTop, left: ghostLeft };
 };
