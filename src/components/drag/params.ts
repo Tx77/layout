@@ -67,3 +67,35 @@ export type Direction = 'left' | 'right' | 'top' | 'bottom';
 // 		intersectComponent.value.y = closestComponentStatic.y;
 // 	}
 // }
+
+
+// const affectedComponents = findAffectedComponents(item, filterComponents).concat(item);
+// console.log("affectedComponents", affectedComponents);
+// if (
+//   currentComponentHeight >= item.height &&
+//   currentComponentTop + currentComponentHeight >= item.y + item.height
+// ) {
+//   console.log("++++++");
+//   item.y = ghostTop;
+//   ghostTop = item.y + item.height;
+// } else if (currentComponentHeight < item.height && currentComponentTop >= item.y) {
+//   console.log("========");
+//   item.y = ghostTop;
+//   ghostTop = item.y + item.height;
+// } else {
+//   console.log("%%%%%", item.id);
+//   item.y = ghostTop + currentComponentHeight;
+// }
+// 		} else {
+//   if (intersectComponent.value) {
+//     componentsStorage.value.forEach((comp) => {
+//       if (
+//         comp.id === intersectComponent.value!.id &&
+//         (intersectComponent.value!.x > ghostLeft + currentComponentWidth ||
+//           intersectComponent.value!.x + intersectComponent.value!.width < ghostLeft)
+//       ) {
+//         console.log("intersectComponent", intersectComponent.value!.id);
+//         intersectComponent.value!.y = comp.y;
+//       }
+//     });
+//   }
