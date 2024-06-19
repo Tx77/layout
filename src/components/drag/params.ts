@@ -39,6 +39,18 @@ export interface Position {
 
 export type Direction = 'left' | 'right' | 'top' | 'bottom';
 
+
+/**
+ * 获取距离最近的组件
+ * @param currentComponent
+ */
+export interface DistanceResult {
+  component: ComponentState;
+  distance: number;
+  direction: "left" | "right";
+}
+
+
 // const closestComponents = findIntersectComponents(formatCurrentComponentStyle);
 // const closestComponent = closestComponents[0];
 // console.log("closestComponents", closestComponent);
@@ -99,3 +111,4 @@ export type Direction = 'left' | 'right' | 'top' | 'bottom';
 //       }
 //     });
 //   }
+

@@ -80,8 +80,10 @@ const containerStyle = reactive({
 watch(
 	() => props.componentState.y,
 	(val) => {
-		containerStyle.top = `${val}px`;
-		containerStyle.transition = "0.08s ease-out";
+		if (!isNaN(val)) {
+			containerStyle.top = `${val}px`;
+			containerStyle.transition = "0.08s ease-out";
+		}
 	}
 );
 

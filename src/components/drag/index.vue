@@ -19,15 +19,16 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
-import { ComponentState, ComponentStyle, Direction, GhostStyle, ClosestParams } from "./params";
+import { ComponentState, ComponentStyle, GhostStyle, DistanceResult } from "./params";
 
 const snapDistance = 50;
 const screenWidth = document.querySelector("#app")?.clientWidth;
 const defaultComponents = [
 	{ id: "comp1", x: 0, y: 0, width: 2560, height: 200, zIndex: "2", fixed: true },
 	{ id: "comp2", x: 537, y: 200, width: 600, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp3", x: 620, y: 500, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp4", x: 630, y: 700, width: 400, height: 400, zIndex: "4", fixed: false },
+	{ id: "comp3", x: 1346, y: 200, width: 400, height: 200, zIndex: "4", fixed: false },
+	{ id: "comp4", x: 630, y: 500, width: 400, height: 400, zIndex: "3", fixed: false },
+	{ id: "comp5", x: 0, y: 1000, width: 2560, height: 200, zIndex: "2", fixed: true },
 ];
 const components = ref<ComponentState[]>([]);
 const componentsStorage = ref<ComponentState[]>([]);
@@ -66,8 +67,8 @@ const handleDrag = (id: string, x: number, y: number) => {
 		component.x = x;
 		component.y = y;
 		intersectComponents.value = [];
-		saveState();
 		resetComponentsY();
+		// saveState();
 	}
 };
 
@@ -137,16 +138,6 @@ const resetComponentsY = () => {
 };
 
 /**
- * 获取距离最近的组件
- * @param currentComponent
- */
-interface DistanceResult {
-	component: ComponentState;
-	distance: number;
-	direction: "left" | "right";
-}
-
-/**
  * 找到距离当前组件X轴最近的组件
  * @param currentComponent
  */
@@ -211,8 +202,8 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	// 	console.log("====");
 	// }
 
+	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
 	const nearestComponent = findNearestXComponent(currentComponentState);
-
 	if (nearestComponent && nearestComponent.distance <= ghostStep.value) {
 		// console.log(nearestComponent.component.id, nearestComponent.direction, nearestComponent.distance);
 		if (nearestComponent.direction === "left") {
@@ -225,7 +216,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	filterComponents.forEach((item) => {
 		//! 幽灵组件定位规则：
 		//! 1、幽灵组件永远不会和组件重叠
-		//! 2、重叠组件的重新定位只会执行一次
+		//! 2、重叠组件的重新定位不能叠加
 		//! 3、重叠组件重新定位时，需要依赖幽灵组件的初始值参数
 		//! 4、幽灵组件y轴初始值与重叠组件不一致时，需根据幽灵组件和重叠组件的高度不同来分别判断
 		//! 5、幽灵组件移出重叠组件后，重叠组件都需减去幽灵组件的高度
@@ -248,7 +239,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 			// 	componentsStorage.value.filter((item) => item.id !== currentComponentStyle.id && !item.fixed)
 			// );
 			// console.log(currentComponentStorage.y, intersectComponentStorage.y);
-			//*【初始值判断】---- 当前组件y轴【初始值】与重叠组件【初始值】处于同一高度
+			//?【初始值判断】---- 当前组件y轴【初始值】与重叠组件【初始值】处于同一高度
 			if (currentComponentStorage.y === intersectComponentStorage.y) {
 				// console.log("currentComponentTop", currentComponentTop, "itemY", item.y);
 				//* 当前组件y轴高度小于等于重叠组件y轴高度
@@ -261,7 +252,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 					item.y = currentComponentStorage.y;
 				}
 			}
-			//*【初始值判断】---- 当前组件y轴【初始值】高于重叠组件【初始值】
+			//?【初始值判断】---- 当前组件y轴【初始值】高于重叠组件【初始值】
 			if (currentComponentStorage.y < intersectComponentStorage.y) {
 				const itemUp = () => {
 					item.y = currentComponentStorage.y;
@@ -308,7 +299,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 					}
 				}
 			}
-			//*【初始值判断】---- 当前组件y轴【初始值】低于重叠组件【初始值】
+			//?【初始值判断】---- 当前组件y轴【初始值】低于重叠组件【初始值】
 			if (currentComponentStorage.y > intersectComponentStorage.y) {
 				const itemBetweenCurrent = () => {
 					return (
@@ -346,6 +337,16 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		}
 	});
 
+	//todo 判断幽灵组件重新定位后是否影响到了其他组件，如果是则需要对被影响到的组件重新定位
+	const ghostComponentState = Object.assign(currentComponentState, { x: ghostLeft, y: ghostTop });
+	const overlappingComponents = findOverlappingComponents(ghostComponentState, filterComponents);
+	if (overlappingComponents.length > 0) {
+		overlappingComponents.forEach((comp) => {
+			comp.y = ghostTop + currentComponentHeight;
+		});
+	}
+	//todo 移动过的组件也需要判断是否影响到了其他组件，如果是则需要对被影响到的组件重新定位
+
 	//* 判断受重叠组件重新定位而影响的其他组件
 	if (targetComponent) {
 		// console.log(targetComponent);
@@ -359,7 +360,7 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 		if (affectedComponents.length > 0) {
 			affectedComponents.forEach((item) => {
 				if (isAffectedByTargetComponent(item)) {
-					console.log(item.id, targetComponent!.y + targetComponent!.height);
+					// console.log(item.id, targetComponent!.y + targetComponent!.height);
 					// item.y += targetComponent!.y + targetComponent!.height;
 				}
 			});
@@ -368,6 +369,36 @@ const calGhostPosition = (currentComponentStyle: ComponentStyle): { top: number;
 	ghostLeft = secondaryCorrectionLeft(ghostLeft, currentComponentLeft, currentComponentWidth);
 	return { top: ghostTop, left: ghostLeft };
 };
+
+/**
+ * 传入一个目标组件，与源组件对比，得到当目标组件的x+width,y+height处于源组件的x+width,y+height范围内的组件
+ * @param target
+ * @param sourceComponents
+ */
+function findOverlappingComponents(target: ComponentState, sourceComponents: ComponentState[]): ComponentState[] {
+	const overlappingComponents: ComponentState[] = [];
+	const targetRight = target.x + target.width;
+	const targetBottom = target.y + target.height;
+
+	for (const component of sourceComponents) {
+		if (component.id === target.id) continue;
+
+		const componentRight = component.x + component.width;
+		const componentBottom = component.y + component.height;
+
+		//* 检查目标组件的right是否处于当前组件的x+width范围内
+		const isXOverlap = targetRight > component.x && targetRight < componentRight;
+
+		//* 检查目标组件的bottom是否处于当前组件的y+height范围内
+		const isYOverlap = targetBottom > component.y && targetBottom < componentBottom;
+
+		if (isXOverlap && isYOverlap) {
+			overlappingComponents.push(component);
+		}
+	}
+
+	return overlappingComponents;
+}
 
 /**
  * 重叠组件在受幽灵组件影响而移动时影响到的其他组件
