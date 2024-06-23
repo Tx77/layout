@@ -31,7 +31,7 @@ const defaultComponents = [
 	{ id: "comp2", x: 709, y: 700, width: 400, height: 200, zIndex: "3", fixed: false },
 	{ id: "comp3", x: 1038, y: 400, width: 400, height: 200, zIndex: "3", fixed: false },
 	{ id: "comp4", x: 378, y: 400, width: 410, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp5", x: 0, y: 900, width: 2564, height: 100, zIndex: "2", fixed: true },
+	{ id: "comp5", x: 0, y: 900, width: screenWidth, height: 100, zIndex: "2", fixed: true },
 	{ id: "comp6", x: 1374, y: 100, width: 432, height: 200, zIndex: "4", fixed: false },
 ];
 
