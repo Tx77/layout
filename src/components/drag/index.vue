@@ -223,20 +223,24 @@ const calcGhostPosition = (currentComponentStyle: ComponentStyle): { top: number
 				return item;
 			});
 			belowTargetY.forEach((item) => {
+				56;
 				item.y = findClosestY(item, sourceComponents);
 			});
 		}
 	};
-
-	const overlappingComponents = findOverlappedComponents(
+	const overlappedComponents = findOverlappedComponents(
 		Object.assign(currentComponentState, { x: ghostLeft, y: ghostTop })
 	);
-	if (overlappingComponents && overlappingComponents.length > 0) {
-		overlappingComponents.forEach((item) => {
-			item.y += currentComponentHeight;
+
+	if (overlappedComponents && overlappedComponents.length > 0) {
+		overlappedComponents.forEach((item) => {
+			const topMatchingComponents = findTopMatchingComponents(item);
+			console.log(item.id, topMatchingComponents);
+			const step = Math.abs(ghostTop + currentComponentHeight - item.y);
+			topMatchingComponents.forEach((comp) => {
+				comp.y += step;
+			});
 		});
-		const belowTargetY = findYBelowTarget(Object.assign(currentComponentState, { x: ghostLeft, y: ghostTop }));
-		adjustComponents(belowTargetY);
 	}
 
 	const sourceComponents = components.value.map((item) => {
@@ -261,6 +265,15 @@ const calcGhostPosition = (currentComponentStyle: ComponentStyle): { top: number
 
 	return { top: ghostTop, left: ghostLeft };
 };
+
+function findTopMatchingComponents(component: ComponentState): ComponentState[] {
+	return components.value.filter(
+		(item) =>
+			item.y >= component.y &&
+			item.id !== currentComp.id &&
+			(item.x >= component.x || item.x <= component.x + component.width)
+	);
+}
 
 function adjustComponents(components: ComponentState[]): ComponentState[] {
 	return components.reduce((acc, comp) => {
