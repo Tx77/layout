@@ -1,5 +1,5 @@
 <template>
-	<div id="comp1" :style="props.layoutStyle">
+	<div :id="props.compName" :style="props.layoutStyle">
 		<div class="left">
 			<div class="item">Header</div>
 			<!-- width: {{ props.layoutStyle.width }} -->
@@ -36,11 +36,15 @@ const props = defineProps({
 		default: () => {},
 		required: true,
 	},
+	compName: {
+		type: String,
+		default: "",
+	},
 });
 </script>
 
 <style scoped>
-#comp1 {
+#Header {
 	background-color: red;
 	display: flex;
 	justify-content: space-between;

@@ -1,5 +1,5 @@
 <template>
-	<div id="comp2" :style="props.layoutStyle">
+	<div :id="props.compName" :style="props.layoutStyle">
 		<div>ExchangeChart</div>
 		<div>width: {{ props.layoutStyle.width }}</div>
 	</div>
@@ -15,11 +15,15 @@ const props = defineProps({
 		default: () => {},
 		required: true,
 	},
+	compName: {
+		type: String,
+		default: "",
+	},
 });
 </script>
 
 <style scoped>
-#comp2 {
+#ExchangeChart {
 	background-color: blue;
 }
 </style>

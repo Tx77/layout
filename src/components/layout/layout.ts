@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-24 16:46:33
+ * @LastEditTime: 2024-06-24 18:04:44
  * @Description:
  */
 
@@ -18,13 +18,14 @@ export interface ComponentStyle {
   position: string;
   left: string;
   top: string;
-  width?: string;
+  width: string;
   minWidth?: string;
   maxWidth?: string;
   height: string;
   transition: string;
   display?: string;
   overflow?: string;
+  zIndex: string;
 }
 
 export interface ComponentState {
@@ -50,6 +51,8 @@ export type ComponentWidthRange = {
   background?: string;
   x: Coordinate;
   y: number;
+  zIndex: string;
+  fixed: boolean;
 };
 
 export type Resolution = {

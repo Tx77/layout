@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-24 16:53:26
+ * @LastEditTime: 2024-06-24 18:07:41
  * @Description:
  */
 
@@ -21,7 +21,7 @@ export default class LayoutResizer {
   screenHeight = ref(0);
   screenMinWidth = ref(0);
   screenMaxWidth = ref(0);
-  layoutCompMap = reactive(new Map<string, { compName: string; comp: ReturnType<typeof defineComponent>; layoutStyle: ComponentStyle; }>());
+  layoutCompMap = reactive(new Map<string, { compName: string; comp: ReturnType<typeof defineComponent>; layoutStyle: ComponentStyle; fixed: boolean; }>());
   currentLayoutStrategy = ref<LayoutStrategy>(LayoutStrategy.PRO_RIGHT);
   resizeObserver = ref<ResizeObserver | null>(null);
   observedElement = ref<HTMLElement | null>(null);
@@ -144,8 +144,10 @@ export default class LayoutResizer {
           width: `${compPosition.width}%`,
           height: `${item.height}px`,
           transition: "all 0.25s ease",
-          overflow: 'hidden'
+          overflow: 'hidden',
+          zIndex: item.zIndex,
         },
+        fixed: item.fixed
       });
     });
   }
