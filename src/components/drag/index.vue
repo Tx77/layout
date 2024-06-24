@@ -13,7 +13,7 @@
 				:setGhostComponent="setGhostComponent"
 				:setResizeGhostComponent="setResizeGhostComponent"
 				:setInitGhostWidth="setInitGhostWidth"
-				:directions="['right', 'bottom-right']"
+				:directions="['bottom-right']"
 			/>
 			<div class="ghost" v-if="isGhost" :style="ghostStyle"></div>
 		</div>
@@ -148,21 +148,27 @@ const setGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyl
 const setDragGhostComponent = (currentComponentState: ComponentState) => {
 	if (isGhost.value && currentComponentState) {
 		requestAnimationFrame(() => {
-			const { top, left } = calcDragGhost(currentComponentState);
-			ghostStyle.value = {
-				width: currentComponentState.width + "px",
-				height: currentComponentState.height + "px",
-				top: top + "px",
-				left: left + "px",
-				zIndex: "1",
-				backgroundColor: "rgba(81, 37, 43, 1)",
-				position: "absolute",
-				transition: "0.1s ease-out",
-			};
+			if (currentComponentState.x >= 0 && currentComponentState.x + currentComponentState.width <= screenWidth!) {
+				const { top, left } = calcDragGhost(currentComponentState);
+				ghostStyle.value = {
+					width: currentComponentState.width + "px",
+					height: currentComponentState.height + "px",
+					top: top + "px",
+					left: left + "px",
+					zIndex: "1",
+					backgroundColor: "rgba(81, 37, 43, 1)",
+					position: "absolute",
+					transition: "0.1s ease-out",
+				};
+			}
 		});
 	}
 };
 
+/**
+ * 配置幽灵组件初始宽度
+ * @param initGhostWidth
+ */
 const setInitGhostWidth = (initGhostWidth: number) => {
 	ghostWidth.value = initGhostWidth;
 };
@@ -242,6 +248,7 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	const currentComponentHeight = currentComponentState.height;
 	let ghostTop = currentComponentTop;
 	let ghostLeft = currentComponentLeft;
+
 	ghostTop = findClosestY(currentComponentState);
 
 	const overlappedComponents = findOverlappedComponents(
@@ -340,7 +347,6 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
 						cur.x + cur.width > currentComponentStyle.x);
 
 				const curDistance = currentComponentStyle.y - (cur.y + cur.height);
-
 				if (isOverlappingX && curDistance < closest.distance && curDistance >= 0) {
 					return { y: cur.y + cur.height, distance: curDistance, found: true };
 				}
@@ -409,6 +415,8 @@ const calcResizeGhost = (
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
 	const nearestComponent = findNearestXComponent(ghostComponent);
+
+	//* 最近组件必须在当前组件右边
 	if (
 		nearestComponent &&
 		ghostLeft + currentComponentWidth <= nearestComponent.component.x &&

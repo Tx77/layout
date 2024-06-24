@@ -245,7 +245,7 @@ if (container.value) {
 	cursor: w-resize;
 }
 .resize-handle.right {
-	right: -5px;
+	right: 0;
 	top: 50%;
 	transform: translateY(-50%);
 	cursor: e-resize;
@@ -266,8 +266,8 @@ if (container.value) {
 	cursor: sw-resize;
 }
 .resize-handle.bottom-right {
-	bottom: -5px;
-	right: -5px;
+	bottom: 0px;
+	right: 0px;
 	cursor: se-resize;
 }
 </style>

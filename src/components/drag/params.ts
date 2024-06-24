@@ -17,12 +17,7 @@ export interface GhostStyle {
   position: string;
   transition?: string;
 }
-export interface ClosestParams {
-  component: ComponentState;
-  distance: number;
-  direction: string;
-  isOverlapping: boolean;
-}
+
 
 export type ComponentStyle = {
   width: string;
@@ -31,14 +26,6 @@ export type ComponentStyle = {
   left: string;
   id: string;
 };
-
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export type Direction = 'left' | 'right' | 'top' | 'bottom';
-
 
 /**
  * 获取距离最近的组件
