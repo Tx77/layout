@@ -28,11 +28,11 @@ import { ComponentState, ComponentStyle, GhostStyle, DistanceResult, GhostType }
 const screenWidth = document.querySelector("#app")?.clientWidth;
 const defaultComponents = [
 	{ id: "comp1", x: 645, y: 100, width: 600, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp2", x: 709, y: 700, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp3", x: 1038, y: 400, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp4", x: 378, y: 400, width: 410, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp5", x: 0, y: 900, width: screenWidth, height: 100, zIndex: "2", fixed: true },
-	{ id: "comp6", x: 1374, y: 100, width: 432, height: 200, zIndex: "4", fixed: false },
+	{ id: "comp2", x: 1075, y: 500, width: 400, height: 200, zIndex: "3", fixed: false },
+	{ id: "comp3", x: 746, y: 800, width: 400, height: 200, zIndex: "3", fixed: false },
+	{ id: "comp4", x: 521, y: 500, width: 410, height: 300, zIndex: "3", fixed: false },
+	{ id: "comp5", x: 0, y: 400, width: screenWidth, height: 100, zIndex: "2", fixed: true },
+	{ id: "comp6", x: 1374, y: 100, width: 432, height: 200, zIndex: "3", fixed: false },
 ];
 
 const components = ref<ComponentState[]>([]);
@@ -409,7 +409,11 @@ const calcResizeGhost = (
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
 	const nearestComponent = findNearestXComponent(ghostComponent);
-	if (nearestComponent && nearestComponent.component.x - (ghostLeft + currentComponentWidth) <= ghostStep.value) {
+	if (
+		nearestComponent &&
+		ghostLeft + currentComponentWidth <= nearestComponent.component.x &&
+		nearestComponent.component.x - (ghostLeft + currentComponentWidth) <= ghostStep.value
+	) {
 		ghostWidth.value = nearestComponent.component.x - ghostLeft;
 	}
 
@@ -435,12 +439,6 @@ const calcResizeGhost = (
 
 	return { top: ghostTop, left: ghostLeft, width: ghostWidth.value, height: ghostHeight };
 };
-
-// const findClosestRightComponent = (target: ComponentState): ComponentState[] => {
-//   return components.value.filter(item => item.id !== target.id).filter(item => {
-//     if (target.y <= item.y || target.y +target.height <= item.y + item.height) { }
-//   })
-// }
 
 onMounted(() => {
 	if (!localStorage.getItem("componentsState")) {
