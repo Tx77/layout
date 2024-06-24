@@ -1,6 +1,6 @@
 <script setup lang="ts" name="Layout">
 import { ref } from "vue";
-import { LayoutStrategy } from "./layout.js";
+import { LayoutStrategy } from "./layout";
 import LayoutResizer from "./LayoutResizer.js";
 import { contractTradeLayout } from "./contractTrade.js";
 

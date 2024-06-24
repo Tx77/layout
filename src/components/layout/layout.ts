@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-14 11:33:39
+ * @LastEditTime: 2024-06-24 16:46:33
  * @Description:
  */
 
@@ -28,7 +28,6 @@ export interface ComponentStyle {
 }
 
 export interface ComponentState {
-  id: string;
   comp: ReturnType<typeof defineComponent>;
   x: number | string;
   y: number | string;
@@ -38,6 +37,7 @@ export interface ComponentState {
   height: number;
   zIndex?: number | string;
   background?: string;
+  fixed?: boolean;
 }
 
 export type Coordinate = number | [number, number];

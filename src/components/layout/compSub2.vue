@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:14:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-13 16:22:58
+ * @LastEditTime: 2024-06-24 16:47:49
  * @Description: 
 -->
 <template>
@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { PropType } from "vue";
-import { type ComponentStyle } from "./layout.js";
+import { type ComponentStyle } from "./layout";
 
 const props = defineProps({
 	layoutStyle: {

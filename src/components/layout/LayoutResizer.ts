@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-14 15:15:36
+ * @LastEditTime: 2024-06-24 16:53:26
  * @Description:
  */
 
@@ -213,8 +213,8 @@ export default class LayoutResizer {
     );
     const xPercentage = toPercentage({ min: Math.round(calculatedX), max: Math.round(calculatedX) }, screenWidth);
     return {
-      x: xPercentage.minPercentage.toFixed(2),
-      width: widthPercentage.minPercentage.toFixed(2),
+      x: xPercentage.minPercentage.toFixed(4),
+      width: widthPercentage.minPercentage.toFixed(4),
     };
   }
 }
