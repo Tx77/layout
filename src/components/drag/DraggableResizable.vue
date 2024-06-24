@@ -16,7 +16,7 @@
 <script setup lang="ts" name="DraggableResizable">
 import type { PropType } from "vue";
 import { ref, reactive, defineEmits, watch } from "vue";
-import { ComponentState, Position } from "./params";
+import { ComponentState, GhostType } from "./params";
 
 const props = defineProps({
 	componentState: {
@@ -44,6 +44,10 @@ const props = defineProps({
 		type: Function,
 		required: true,
 	},
+	setInitGhostWidth: {
+		type: Function,
+		required: true,
+	},
 	directions: {
 		type: Array as PropType<string[]>,
 		required: false,
@@ -54,7 +58,6 @@ const props = defineProps({
 const emit = defineEmits(["drag", "resize"]);
 const mouseCursor = ref("grab");
 
-const isCollied = ref(false);
 const isSnap = ref(false);
 const startX = ref(0);
 const startY = ref(0);
@@ -62,10 +65,6 @@ const startLeft = ref(0);
 const startTop = ref(0);
 
 const container = ref<HTMLElement | null>(null);
-
-// 初始化上一次的鼠标位置
-let lastMousePosition = ref<Position | null>(null);
-let direction = ref("");
 
 const containerStyle = reactive({
 	id: `${props.componentState.id}`,
@@ -121,11 +120,10 @@ const onMouseDown = (event: MouseEvent) => {
 	startLeft.value = parseInt(containerStyle.left);
 	startTop.value = parseInt(containerStyle.top);
 	props.setCurrentComponent(containerStyle);
-	props.setGhostComponent(true, containerStyle);
+	props.setGhostComponent(true, containerStyle, GhostType.DRAG);
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
-		calcMouseMoveDirection(moveEvent);
-		props.setGhostComponent(true, containerStyle, direction.value);
+		props.setGhostComponent(true, containerStyle, GhostType.DRAG);
 		//* 使用 requestAnimationFrame 来优化性能
 		requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
@@ -135,7 +133,7 @@ const onMouseDown = (event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
-		props.setGhostComponent(false, containerStyle);
+		props.setGhostComponent(false, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
 			updatePosition(parseInt(props.ghostStyle.left), parseInt(props.ghostStyle.top), true);
 			emit("drag", props.componentState.id, parseInt(containerStyle.left), parseInt(containerStyle.top));
@@ -149,38 +147,6 @@ const onMouseDown = (event: MouseEvent) => {
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 };
-
-const calcMouseMoveDirection = (event: MouseEvent) => {
-	// 获取当前鼠标位置
-	const currentPosition: Position = {
-		x: event.clientX,
-		y: event.clientY,
-	};
-
-	// 判断水平和垂直方向
-	if (lastMousePosition.value) {
-		// 计算与上一次位置的差异
-		const deltaX = currentPosition.x - lastMousePosition.value.x;
-		const deltaY = currentPosition.y - lastMousePosition.value.y;
-
-		if (Math.abs(deltaX) > Math.abs(deltaY)) {
-			if (deltaX > 0) {
-				direction.value = "right";
-			} else {
-				direction.value = "left";
-			}
-		} else {
-			if (deltaY > 0) {
-				direction.value = "bottom";
-			} else {
-				direction.value = "top";
-			}
-		}
-	}
-
-	lastMousePosition.value = currentPosition;
-};
-
 /**
  * 组件resize事件
  * @param dir
@@ -191,32 +157,32 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startY = event.clientY;
 	const startWidth = parseInt(containerStyle.width);
 	const startHeight = parseInt(containerStyle.height);
-	const startLeft = parseInt(containerStyle.left);
-	const startTop = parseInt(containerStyle.top);
+	props.setCurrentComponent(containerStyle);
+	props.setInitGhostWidth(startWidth);
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
 		let newWidth = startWidth;
 		let newHeight = startHeight;
-		let newLeft = startLeft;
-		let newTop = startTop;
 
 		if (dir.includes("right")) {
 			newWidth = startWidth + (moveEvent.clientX - startX);
 		} else if (dir.includes("left")) {
 			newWidth = startWidth - (moveEvent.clientX - startX);
-			newLeft = startLeft + (moveEvent.clientX - startX);
 		}
 
 		if (dir.includes("bottom")) {
 			newHeight = startHeight + (moveEvent.clientY - startY);
 		} else if (dir.includes("top")) {
 			newHeight = startHeight - (moveEvent.clientY - startY);
-			newTop = startTop + (moveEvent.clientY - startY);
 		}
+		props.setGhostComponent(true, containerStyle, GhostType.RESIZE);
 		updateSize(newWidth, newHeight);
 	};
 
 	const onMouseUp = () => {
+		containerStyle.width = props.ghostStyle.width;
+		containerStyle.height = props.ghostStyle.height;
+		props.setGhostComponent(false, containerStyle, GhostType.RESIZE);
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
 		emit("resize", props.componentState.id, parseInt(containerStyle.width), parseInt(containerStyle.height));
