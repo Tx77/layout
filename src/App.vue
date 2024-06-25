@@ -10,14 +10,4 @@ import Layout from "./components/layout/index.vue";
 	</div>
 </template>
 
-<style scoped>
-.home-container {
-	width: 100%;
-}
-
-p {
-	position: absolute;
-	left: 0;
-	bottom: 0;
-}
-</style>
+<style scoped></style>

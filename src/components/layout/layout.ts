@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-25 14:48:38
+ * @LastEditTime: 2024-06-25 19:32:35
  * @Description:
  */
 
@@ -16,18 +16,16 @@ export enum LayoutStrategy {
 
 export interface ComponentStyle {
   position: string;
-  left: string | number;
-  top: string | number;
-  width: string | number;
-  minWidth?: string | number;
-  maxWidth?: string | number;
-  height: string | number;
+  left: string;
+  top: string;
+  width: string;
+  minWidth?: string;
+  maxWidth?: string;
+  height: string;
   transition: string;
   display?: string;
   overflow?: string;
   zIndex: string;
-  x?: number;
-  y?: number;
 }
 
 export interface ComponentState {
@@ -62,6 +60,7 @@ export type ComponentWidthRange = {
   y: number;
   zIndex: string;
   fixed: boolean;
+  show: boolean;
 };
 
 export type Resolution = {

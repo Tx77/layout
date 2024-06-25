@@ -1,5 +1,5 @@
 <template>
-	<div :id="props.compName">
+	<div id="comp3">
 		<div class="header" @mousedown.prevent="onMouseDown" :style="{ cursor }">
 			{{ compName }}
 		</div>
@@ -29,7 +29,7 @@ const onMouseDown = (event: MouseEvent) => {
 </script>
 
 <style scoped lang="less">
-#ExchangeList {
+#comp3 {
 	background-color: blueviolet;
 	position: relative;
 	width: 100%;

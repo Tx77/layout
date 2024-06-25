@@ -1,5 +1,5 @@
 <template>
-	<div :id="props.compName" @mousedown.prevent="onMouseDown" :style="{ cursor }">
+	<div id="comp1" @mousedown.prevent="onMouseDown" :style="{ cursor }">
 		<div class="left">
 			<div class="item">Header</div>
 			<!-- width: {{ props.layoutStyle.width }} -->
@@ -49,7 +49,7 @@ const onMouseDown = (event: MouseEvent) => {
 </script>
 
 <style scoped>
-#Header {
+#comp1 {
 	background-color: red;
 	display: flex;
 	justify-content: space-between;

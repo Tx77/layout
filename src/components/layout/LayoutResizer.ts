@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-25 11:13:14
+ * @LastEditTime: 2024-06-25 19:45:32
  * @Description:
  */
 
@@ -26,12 +26,17 @@ export default class LayoutResizer {
   currentLayoutStrategy = ref<LayoutStrategy>(LayoutStrategy.PRO_RIGHT);
   resizeObserver = ref<ResizeObserver | null>(null);
   observedElement = ref<HTMLElement | null>(null);
+  resolutionRange = ref('');
+  currentScreenResolutionMap = ref<ScreenResolutionMap[]>();
 
   constructor(
     private selectorName: string,
     layoutStrategy: LayoutStrategy,
     private screenResolutionMap: ScreenResolutionMap[]
   ) {
+    if (localStorage.getItem(layoutStrategy)) {
+      this.currentScreenResolutionMap = JSON.parse(localStorage.getItem(layoutStrategy));
+    }
     this.currentLayoutStrategy.value = layoutStrategy;
 
     onMounted(() => {
@@ -96,6 +101,7 @@ export default class LayoutResizer {
   private loadComponentWidthRange(layoutStrategy: LayoutStrategy, screenWidth: number): ComponentWidthRange[] {
     let layoutStyles: ComponentWidthRange[] | null = [];
     for (let item of this.screenResolutionMap) {
+      this.setDefaultStorage(item);
       if (item.layoutStrategy === layoutStrategy) {
         layoutStyles = this.getComponentWidthRange(screenWidth, item.resolution);
         break;
@@ -108,6 +114,36 @@ export default class LayoutResizer {
       ) as ComponentWidthRange[];
     }
     return layoutStyles;
+  }
+
+  /**
+   * 设置默认缓存
+   * @param layout 
+   */
+  private setDefaultStorage(layout: ScreenResolutionMap) {
+    if (!localStorage.getItem(layout.layoutStrategy)) {
+      let layoutStorage = new Map();
+      for (let i in layout.resolution) {
+        const resolutionItem = layout.resolution[i].map(item => {
+          return {
+            id: item.compName,
+            fixed: item.fixed,
+            height: item.height,
+            width: Array.isArray(item.width) ? item.width[item.width.length - 1] : item.width,
+            x: Array.isArray(item.x) ? item.x[item.x.length - 1] : item.x,
+            y: item.y,
+            moved: false,
+            static: false,
+            show: item.show,
+            zIndex: item.zIndex
+          };
+        });
+        layoutStorage.set(i, resolutionItem);
+      }
+      if (layoutStorage.size > 0) {
+        localStorage.setItem(layout.layoutStrategy, JSON.stringify(Object.fromEntries(layoutStorage)));
+      }
+    }
   }
 
   /**

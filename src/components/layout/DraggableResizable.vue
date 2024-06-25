@@ -2,20 +2,20 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-25 14:55:24
+ * @LastEditTime: 2024-06-25 19:52:01
  * @Description: 
 -->
 <template>
-	<div :id="componentState.id" ref="container" class="draggable-resizable" :style="containerStyle">
+	<div :id="props.compName" ref="container" class="draggable-resizable" :style="props.layoutStyle">
 		<component
 			:is="comp"
 			:compName="props.compName"
-			:width="containerStyle.width"
+			:width="props.layoutStyle.width"
 			:cursor="mouseCursor"
 			@dragMouseDown="onMouseDown"
 		></component>
 		<div
-			v-for="dir in directions"
+			v-for="dir in props.directions"
 			:key="dir"
 			:class="['resize-handle', dir]"
 			@mousedown.stop.prevent="onResizeHandleMouseDown(dir, $event)"
@@ -26,11 +26,12 @@
 <script setup lang="ts" name="DraggableResizable">
 import type { Component, PropType } from "vue";
 import { ref, reactive, defineEmits, watch } from "vue";
-import { GhostType, LayoutComponents } from "./params";
+import { GhostType } from "./params";
+import { ComponentStyle } from "./layout";
 
 const props = defineProps({
-	componentState: {
-		type: Object as PropType<LayoutComponents>,
+	layoutStyle: {
+		type: Object as PropType<ComponentStyle>,
 		default: () => {},
 		required: true,
 	},
@@ -51,6 +52,10 @@ const props = defineProps({
 		type: String,
 		default: "",
 	},
+	fixed: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 const emit = defineEmits(["drag", "resize", "setCurrentComponent", "setGhostComponent", "setInitGhostWidth"]);
@@ -64,18 +69,26 @@ const startTop = ref(0);
 
 const container = ref<HTMLElement | null>(null);
 
-const containerStyle = reactive({
-	id: `${props.componentState.id}`,
-	width: `${props.componentState.width}px`,
-	height: `${props.componentState.height}px`,
-	top: `${props.componentState.y}px`,
-	left: `${props.componentState.x}px`,
-	zIndex: props.componentState.zIndex,
-	transition: "none",
-});
+// const containerStyle = reactive({
+// 	width: `${props.componentState.width}%`,
+// 	height: `${props.componentState.height}px`,
+// 	top: `${props.componentState.y}px`,
+// 	left: `${props.componentState.x}%`,
+// 	zIndex: props.componentState.zIndex,
+// 	transition: "none",
+// });
+
+const containerStyle = reactive(props.layoutStyle);
 
 watch(
-	() => props.componentState.y,
+	() => props.layoutStyle,
+	(val) => {
+		Object.assign(containerStyle, val);
+	}
+);
+
+watch(
+	() => props.layoutStyle.y,
 	(val) => {
 		if (!isNaN(val)) {
 			containerStyle.top = `${val}px`;
@@ -85,7 +98,7 @@ watch(
 );
 
 watch(
-	() => props.componentState.zIndex,
+	() => props.layoutStyle.zIndex,
 	(val) => {
 		containerStyle.zIndex = val;
 	}
@@ -107,8 +120,12 @@ const updateSize = (width: number, height: number) => {
 	containerStyle.height = `${height}px`;
 };
 
+/**
+ * 组件drag事件
+ * @param event
+ */
 const onMouseDown = (event: MouseEvent) => {
-	if (props.componentState.fixed) {
+	if (props.fixed) {
 		mouseCursor.value = "auto";
 		return;
 	}
@@ -134,7 +151,7 @@ const onMouseDown = (event: MouseEvent) => {
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
 			updatePosition(parseInt(props.ghostStyle.left), parseInt(props.ghostStyle.top), true);
-			emit("drag", props.componentState.id, parseInt(containerStyle.left), parseInt(containerStyle.top));
+			emit("drag", props.compName, parseInt(containerStyle.left), parseInt(containerStyle.top));
 		});
 		mouseCursor.value = "grab";
 		document.removeEventListener("mousemove", onMouseMove);
@@ -183,7 +200,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
-		emit("resize", props.componentState.id, parseInt(containerStyle.width), parseInt(containerStyle.height));
+		emit("resize", props.compName, parseInt(containerStyle.width), parseInt(containerStyle.height));
 	};
 
 	document.addEventListener("mousemove", onMouseMove);
@@ -191,17 +208,17 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 };
 
 //* 使用 ResizeObserver 来监听容器大小变化
-const resizeObserver = new ResizeObserver((entries) => {
-	console.log(`entries, ${entries}`);
-	const entry = entries[0];
-	const { width, height } = entry.contentRect;
-	updateSize(width, height);
-});
+// const resizeObserver = new ResizeObserver((entries) => {
+// 	console.log(`entries, ${entries}`);
+// 	const entry = entries[0];
+// 	const { width, height } = entry.contentRect;
+// 	updateSize(width, height);
+// });
 
-//* 在容器元素存在时，才监听其大小变化
-if (container.value) {
-	resizeObserver.observe(container.value);
-}
+// //* 在容器元素存在时，才监听其大小变化
+// if (container.value) {
+// 	resizeObserver.observe(container.value);
+// }
 </script>
 
 <style lang="less" scoped>

@@ -2,30 +2,28 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-25 14:49:38
+ * @LastEditTime: 2024-06-25 17:57:01
  * @Description: 
 -->
 <template>
-	<div class="app">
-		<div class="drag-container">
-			<DraggableResizable
-				v-for="comp in props.components"
-				:key="comp.compName"
-				:componentState="comp.layoutStyle"
-				:compName="comp.compName"
-				:comp="comp.comp"
-				:ghostStyle="ghostStyle"
-				:setInitGhostWidth="setInitGhostWidth"
-				:directions="['bottom-right']"
-				@drag="handleDrag"
-				@resize="handleResize"
-				@setCurrentComponent="setCurrentComponent"
-				@setGhostComponent="setGhostComponent"
-				@setResizeGhostComponent="setResizeGhostComponent"
-			>
-			</DraggableResizable>
-			<div class="ghost" v-if="isGhost" :style="ghostStyle"></div>
-		</div>
+	<div class="drag-container">
+		<DraggableResizable
+			v-for="comp in props.layoutComponents"
+			:key="comp.compName"
+			:layoutStyle="comp.layoutStyle"
+			:compName="comp.compName"
+			:comp="comp.comp"
+			:ghostStyle="ghostStyle"
+			:setInitGhostWidth="setInitGhostWidth"
+			:directions="['bottom-right']"
+			:fixed="comp.fixed"
+			@drag="handleDrag"
+			@resize="handleResize"
+			@setCurrentComponent="setCurrentComponent"
+			@setGhostComponent="setGhostComponent"
+			@setResizeGhostComponent="setResizeGhostComponent"
+		/>
+		<div class="ghost" v-if="isGhost" :style="ghostStyle"></div>
 	</div>
 </template>
 
@@ -33,36 +31,29 @@
 import { PropType, onMounted, reactive, ref, watch } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
 import { ComponentState, ComponentStyle, GhostStyle, DistanceResult, GhostType } from "./params";
-import { LayoutCompMap } from "./layout";
+import { LayoutCompMap, LayoutStrategy } from "./layout";
 
 const props = defineProps({
-	components: {
+	layoutComponents: {
 		type: Array as PropType<LayoutCompMap[]>,
 		default: () => [],
 	},
+	screenWidth: {
+		type: Number,
+		default: 0,
+	},
+	layoutStrategy: {
+		type: String,
+		default: LayoutStrategy.PRO_RIGHT,
+	},
 });
-const defaultComponents = ref<ComponentState[]>();
 watch(
-	() => props.components,
-	(val) => {
-		defaultComponents.value = val.map((item) => ({
-			id: item.compName,
-			x: item.layoutStyle.x,
-			y: item.layoutStyle.y,
-			width: item.layoutStyle.width,
-			height: item.layoutStyle.height,
-			zIndex: item.layoutStyle.zIndex,
-			fixed: item.fixed,
-		}));
-		if (!localStorage.getItem("componentsState")) {
-			localStorage.setItem("componentsState", JSON.stringify(defaultComponents.value));
-		}
+	() => props.layoutComponents,
+	() => {
 		loadState();
 	}
 );
-const screenWidth = document.querySelector("#app")?.clientWidth;
 const components = ref<ComponentState[]>([]);
-const componentsStorage = ref<ComponentState[]>([]);
 const currentComp = reactive<ComponentState>({
 	id: "",
 	x: 0,
@@ -70,26 +61,44 @@ const currentComp = reactive<ComponentState>({
 	width: 0,
 	height: 0,
 });
-const parentWidth = ref(0);
-const parentHeight = ref(0);
 const ghostStep = ref(0);
 const isGhost = ref(false);
 const ghostStyle = ref<GhostStyle>();
 const ghostWidth = ref(0);
+const layoutData = ref();
+
+const translateToPxNumber = (val: string): number => {
+	if (val.indexOf("%") > -1) {
+		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(4));
+	}
+	return parseFloat(val);
+};
 
 const loadState = () => {
-	const savedState = localStorage.getItem("componentsState");
-	if (savedState) {
-		Object.assign(components.value, JSON.parse(savedState));
-		Object.assign(componentsStorage.value, JSON.parse(savedState));
-	} else {
-		Object.assign(components.value, defaultComponents.value);
+	layoutData.value = localStorage.getItem(props.layoutStrategy);
+	if (!layoutData) {
+		return;
 	}
+	layoutData.value = JSON.parse(layoutData.value);
+	for (const resolutionRange in layoutData.value) {
+		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
+		if (props.screenWidth >= minWidth && props.screenWidth <= maxWidth) {
+			components.value = layoutData.value[resolutionRange];
+		}
+	}
+	// console.log(layoutData.value);
+	// console.log(components.value);
 };
 
 const saveState = () => {
-	localStorage.setItem("componentsState", JSON.stringify(components.value));
-	componentsStorage.value = JSON.parse(localStorage.getItem("componentsState")!);
+	console.log("saveState");
+	for (const resolutionRange in layoutData.value) {
+		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
+		if (props.screenWidth >= minWidth && props.screenWidth <= maxWidth) {
+			layoutData.value[resolutionRange] = components.value;
+		}
+	}
+	localStorage.setItem(props.layoutStrategy, JSON.stringify(layoutData.value));
 };
 
 const handleDrag = (id: string, x: number, y: number) => {
@@ -157,12 +166,12 @@ const setGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyl
 		height: currentComponentHeight,
 	};
 	if (type === GhostType.DRAG) {
-		ghostStep.value = parseInt((parentWidth.value / 30).toFixed(0));
+		ghostStep.value = parseInt((props.screenWidth / 30).toFixed(0));
 		setComponentsZIndex(currentComponentStyle.id);
 		setDragGhostComponent(currentComponentState);
 	}
 	if (type === GhostType.RESIZE) {
-		ghostStep.value = parseInt((parentWidth.value / 60).toFixed(0));
+		ghostStep.value = parseInt((props.screenWidth / 60).toFixed(0));
 		setResizeGhostComponent(currentComponentState);
 	}
 };
@@ -174,7 +183,7 @@ const setGhostComponent = (isShow: boolean, currentComponentStyle: ComponentStyl
 const setDragGhostComponent = (currentComponentState: ComponentState) => {
 	if (isGhost.value && currentComponentState) {
 		requestAnimationFrame(() => {
-			if (currentComponentState.x >= 0 && currentComponentState.x + currentComponentState.width <= screenWidth!) {
+			if (currentComponentState.x >= 0 && currentComponentState.x + currentComponentState.width <= props.screenWidth) {
 				const { top, left } = calcDragGhost(currentComponentState);
 				ghostStyle.value = {
 					width: currentComponentState.width + "px",
@@ -340,11 +349,11 @@ const secondaryCorrectionLeft = (left: number, currentComponentLeft: number, cur
 	if (currentComponentLeft <= ghostStep.value) {
 		return 0;
 	}
-	if (left + currentComponentWidth > screenWidth!) {
-		return screenWidth! - currentComponentWidth;
+	if (left + currentComponentWidth > props.screenWidth) {
+		return props.screenWidth - currentComponentWidth;
 	}
-	if (currentComponentLeft + currentComponentWidth + ghostStep.value >= screenWidth!) {
-		return screenWidth! - currentComponentWidth;
+	if (currentComponentLeft + currentComponentWidth + ghostStep.value >= props.screenWidth) {
+		return props.screenWidth - currentComponentWidth;
 	}
 
 	return left;
@@ -474,10 +483,7 @@ const calcResizeGhost = (
 	return { top: ghostTop, left: ghostLeft, width: ghostWidth.value, height: ghostHeight };
 };
 
-onMounted(() => {
-	parentWidth.value = document.querySelector(".app")!.clientWidth;
-	parentHeight.value = document.querySelector(".app")!.clientHeight;
-});
+onMounted(() => {});
 </script>
 <style lang="less" scoped>
 .app {
