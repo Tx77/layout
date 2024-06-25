@@ -2,15 +2,18 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-24 16:45:01
+ * @LastEditTime: 2024-06-25 14:55:24
  * @Description: 
 -->
 <template>
 	<div :id="componentState.id" ref="container" class="draggable-resizable" :style="containerStyle">
-		<div class="header" @mousedown.prevent="onMouseDown" :style="{ cursor: mouseCursor }">
-			{{ componentState.id }}
-		</div>
-
+		<component
+			:is="comp"
+			:compName="props.compName"
+			:width="containerStyle.width"
+			:cursor="mouseCursor"
+			@dragMouseDown="onMouseDown"
+		></component>
 		<div
 			v-for="dir in directions"
 			:key="dir"
@@ -21,13 +24,13 @@
 </template>
 
 <script setup lang="ts" name="DraggableResizable">
-import type { PropType } from "vue";
+import type { Component, PropType } from "vue";
 import { ref, reactive, defineEmits, watch } from "vue";
-import { ComponentState, GhostType } from "./params";
+import { GhostType, LayoutComponents } from "./params";
 
 const props = defineProps({
 	componentState: {
-		type: Object as PropType<ComponentState>,
+		type: Object as PropType<LayoutComponents>,
 		default: () => {},
 		required: true,
 	},
@@ -35,34 +38,22 @@ const props = defineProps({
 		type: Object,
 		default: () => {},
 	},
-	onDrag: {
-		type: Function,
-		required: true,
-	},
-	onResize: {
-		type: Function,
-		required: true,
-	},
-	setCurrentComponent: {
-		type: Function,
-		required: true,
-	},
-	setGhostComponent: {
-		type: Function,
-		required: true,
-	},
-	setInitGhostWidth: {
-		type: Function,
-		required: true,
-	},
 	directions: {
 		type: Array as PropType<string[]>,
 		required: false,
 		default: ["top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right"],
 	},
+	comp: {
+		type: Object as PropType<Component>,
+		required: true,
+	},
+	compName: {
+		type: String,
+		default: "",
+	},
 });
 
-const emit = defineEmits(["drag", "resize"]);
+const emit = defineEmits(["drag", "resize", "setCurrentComponent", "setGhostComponent", "setInitGhostWidth"]);
 const mouseCursor = ref("grab");
 
 const isSnap = ref(false);
@@ -126,11 +117,11 @@ const onMouseDown = (event: MouseEvent) => {
 	startY.value = event.clientY;
 	startLeft.value = parseInt(containerStyle.left);
 	startTop.value = parseInt(containerStyle.top);
-	props.setCurrentComponent(containerStyle);
-	props.setGhostComponent(true, containerStyle, GhostType.DRAG);
+	emit("setCurrentComponent", containerStyle);
+	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
-		props.setGhostComponent(true, containerStyle, GhostType.DRAG);
+		emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 		//* 使用 requestAnimationFrame 来优化性能
 		requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
@@ -140,7 +131,7 @@ const onMouseDown = (event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
-		props.setGhostComponent(false, containerStyle, GhostType.DRAG);
+		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
 			updatePosition(parseInt(props.ghostStyle.left), parseInt(props.ghostStyle.top), true);
 			emit("drag", props.componentState.id, parseInt(containerStyle.left), parseInt(containerStyle.top));
@@ -164,8 +155,8 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startY = event.clientY;
 	const startWidth = parseInt(containerStyle.width);
 	const startHeight = parseInt(containerStyle.height);
-	props.setCurrentComponent(containerStyle);
-	props.setInitGhostWidth(startWidth);
+	emit("setCurrentComponent", containerStyle);
+	emit("setInitGhostWidth", startWidth);
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
 		let newWidth = startWidth;
@@ -182,14 +173,14 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		} else if (dir.includes("top")) {
 			newHeight = startHeight - (moveEvent.clientY - startY);
 		}
-		props.setGhostComponent(true, containerStyle, GhostType.RESIZE);
+		emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
 		updateSize(newWidth, newHeight);
 	};
 
 	const onMouseUp = () => {
 		containerStyle.width = props.ghostStyle.width;
 		containerStyle.height = props.ghostStyle.height;
-		props.setGhostComponent(false, containerStyle, GhostType.RESIZE);
+		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
 		emit("resize", props.componentState.id, parseInt(containerStyle.width), parseInt(containerStyle.height));
@@ -216,7 +207,7 @@ if (container.value) {
 <style lang="less" scoped>
 .draggable-resizable {
 	position: absolute;
-	background-color: #15191c;
+	// background-color: #15191c;
 	border: 1px solid #333;
 	box-sizing: border-box;
 	.header {

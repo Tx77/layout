@@ -1,5 +1,5 @@
 <template>
-	<div :id="props.compName" :style="props.layoutStyle">
+	<div :id="props.compName" @mousedown.prevent="onMouseDown" :style="{ cursor }">
 		<div class="left">
 			<div class="item">Header</div>
 			<!-- width: {{ props.layoutStyle.width }} -->
@@ -26,21 +26,26 @@
 	</div>
 </template>
 
-<script setup lang="ts">
-import { PropType } from "vue";
-import { type ComponentStyle } from "./layout";
-
+<script setup lang="ts" name="Header">
 const props = defineProps({
-	layoutStyle: {
-		type: Object as PropType<ComponentStyle>,
-		default: () => {},
-		required: true,
-	},
 	compName: {
 		type: String,
 		default: "",
 	},
+	width: {
+		type: String,
+		default: "",
+	},
+	cursor: {
+		type: String,
+		default: "auto",
+	},
 });
+
+const emits = defineEmits(["dragMouseDown"]);
+const onMouseDown = (event: MouseEvent) => {
+	emits("dragMouseDown", event);
+};
 </script>
 
 <style scoped>
@@ -48,6 +53,9 @@ const props = defineProps({
 	background-color: red;
 	display: flex;
 	justify-content: space-between;
+	position: relative;
+	width: 100%;
+	height: 100%;
 }
 
 .left {

@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-24 18:07:41
+ * @LastEditTime: 2024-06-25 11:13:14
  * @Description:
  */
 
@@ -14,6 +14,7 @@ import {
   type Resolution,
   type Coordinate,
   ScreenResolutionMap,
+  LayoutCompMap,
 } from "./layout";
 
 export default class LayoutResizer {
@@ -21,7 +22,7 @@ export default class LayoutResizer {
   screenHeight = ref(0);
   screenMinWidth = ref(0);
   screenMaxWidth = ref(0);
-  layoutCompMap = reactive(new Map<string, { compName: string; comp: ReturnType<typeof defineComponent>; layoutStyle: ComponentStyle; fixed: boolean; }>());
+  layoutCompMap = reactive(new Map<string, LayoutCompMap>());
   currentLayoutStrategy = ref<LayoutStrategy>(LayoutStrategy.PRO_RIGHT);
   resizeObserver = ref<ResizeObserver | null>(null);
   observedElement = ref<HTMLElement | null>(null);

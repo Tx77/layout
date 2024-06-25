@@ -1,29 +1,43 @@
 <template>
-	<div :id="props.compName" :style="props.layoutStyle">
-		<div>ExchangeList</div>
-		<div>width: {{ props.layoutStyle.width }}</div>
+	<div :id="props.compName">
+		<div class="header" @mousedown.prevent="onMouseDown" :style="{ cursor }">
+			{{ compName }}
+		</div>
+		<div>width: {{ props.width }}</div>
 	</div>
 </template>
 
-<script setup lang="ts">
-import { PropType } from "vue";
-import { type ComponentStyle } from "./layout";
-
+<script setup lang="ts" name="ExchangeList">
 const props = defineProps({
-	layoutStyle: {
-		type: Object as PropType<ComponentStyle>,
-		default: () => {},
-		required: true,
-	},
 	compName: {
 		type: String,
 		default: "",
 	},
+	cursor: {
+		type: String,
+		default: "auto",
+	},
+	width: {
+		type: String,
+		default: "",
+	},
 });
+const emits = defineEmits(["dragMouseDown"]);
+const onMouseDown = (event: MouseEvent) => {
+	emits("dragMouseDown", event);
+};
 </script>
 
-<style scoped>
+<style scoped lang="less">
 #ExchangeList {
 	background-color: blueviolet;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	.header {
+		width: 100%;
+		height: 60px;
+		border-bottom: 1px #000 solid;
+	}
 }
 </style>

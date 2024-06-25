@@ -1,3 +1,5 @@
+import { defineComponent } from "vue";
+
 export interface ComponentState {
   id: string;
   x: number;
@@ -6,6 +8,13 @@ export interface ComponentState {
   height: number;
   zIndex?: number | string;
   fixed?: boolean;
+  overflow?: string;
+  position?: string;
+  transition?: string;
+}
+
+export interface LayoutComponents extends ComponentState {
+  comp: ReturnType<typeof defineComponent>;
 }
 export interface GhostStyle {
   top: string;

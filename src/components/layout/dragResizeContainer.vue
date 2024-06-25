@@ -2,46 +2,65 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-24 16:44:46
+ * @LastEditTime: 2024-06-25 14:49:38
  * @Description: 
 -->
 <template>
 	<div class="app">
-		<div class="header" :style="{ width: screenWidth + 'px' }">Header</div>
 		<div class="drag-container">
 			<DraggableResizable
-				v-for="comp in components"
-				:key="comp.id"
-				:componentState="comp"
+				v-for="comp in props.components"
+				:key="comp.compName"
+				:componentState="comp.layoutStyle"
+				:compName="comp.compName"
+				:comp="comp.comp"
 				:ghostStyle="ghostStyle"
-				@drag="handleDrag"
-				@resize="handleResize"
-				:setCurrentComponent="setCurrentComponent"
-				:setGhostComponent="setGhostComponent"
-				:setResizeGhostComponent="setResizeGhostComponent"
 				:setInitGhostWidth="setInitGhostWidth"
 				:directions="['bottom-right']"
-			/>
+				@drag="handleDrag"
+				@resize="handleResize"
+				@setCurrentComponent="setCurrentComponent"
+				@setGhostComponent="setGhostComponent"
+				@setResizeGhostComponent="setResizeGhostComponent"
+			>
+			</DraggableResizable>
 			<div class="ghost" v-if="isGhost" :style="ghostStyle"></div>
 		</div>
 	</div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+<script setup lang="ts" name="DragResizeContainer">
+import { PropType, onMounted, reactive, ref, watch } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
 import { ComponentState, ComponentStyle, GhostStyle, DistanceResult, GhostType } from "./params";
+import { LayoutCompMap } from "./layout";
 
+const props = defineProps({
+	components: {
+		type: Array as PropType<LayoutCompMap[]>,
+		default: () => [],
+	},
+});
+const defaultComponents = ref<ComponentState[]>();
+watch(
+	() => props.components,
+	(val) => {
+		defaultComponents.value = val.map((item) => ({
+			id: item.compName,
+			x: item.layoutStyle.x,
+			y: item.layoutStyle.y,
+			width: item.layoutStyle.width,
+			height: item.layoutStyle.height,
+			zIndex: item.layoutStyle.zIndex,
+			fixed: item.fixed,
+		}));
+		if (!localStorage.getItem("componentsState")) {
+			localStorage.setItem("componentsState", JSON.stringify(defaultComponents.value));
+		}
+		loadState();
+	}
+);
 const screenWidth = document.querySelector("#app")?.clientWidth;
-const defaultComponents = [
-	{ id: "comp1", x: 645, y: 100, width: 600, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp2", x: 1075, y: 500, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp3", x: 746, y: 800, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp4", x: 521, y: 500, width: 410, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp5", x: 0, y: 400, width: screenWidth, height: 100, zIndex: "2", fixed: true },
-	{ id: "comp6", x: 1374, y: 100, width: 432, height: 200, zIndex: "3", fixed: false },
-];
-
 const components = ref<ComponentState[]>([]);
 const componentsStorage = ref<ComponentState[]>([]);
 const currentComp = reactive<ComponentState>({
@@ -64,7 +83,7 @@ const loadState = () => {
 		Object.assign(components.value, JSON.parse(savedState));
 		Object.assign(componentsStorage.value, JSON.parse(savedState));
 	} else {
-		Object.assign(components.value, defaultComponents);
+		Object.assign(components.value, defaultComponents.value);
 	}
 };
 
@@ -342,7 +361,7 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
 	} else {
 		sourceComponents = components.value;
 	}
-	const initY = 100;
+	const initY = 0;
 	const result = sourceComponents
 		.filter((item) => item.id !== currentComponentStyle.id)
 		.reduce(
@@ -456,12 +475,8 @@ const calcResizeGhost = (
 };
 
 onMounted(() => {
-	if (!localStorage.getItem("componentsState")) {
-		localStorage.setItem("componentsState", JSON.stringify(defaultComponents));
-	}
 	parentWidth.value = document.querySelector(".app")!.clientWidth;
 	parentHeight.value = document.querySelector(".app")!.clientHeight;
-	loadState();
 });
 </script>
 <style lang="less" scoped>
@@ -483,6 +498,8 @@ onMounted(() => {
 	}
 	.drag-container {
 		position: relative;
+		width: 100%;
+		height: 100%;
 	}
 }
 </style>

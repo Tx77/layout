@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-24 18:04:44
+ * @LastEditTime: 2024-06-25 14:48:38
  * @Description:
  */
 
@@ -16,16 +16,18 @@ export enum LayoutStrategy {
 
 export interface ComponentStyle {
   position: string;
-  left: string;
-  top: string;
-  width: string;
-  minWidth?: string;
-  maxWidth?: string;
-  height: string;
+  left: string | number;
+  top: string | number;
+  width: string | number;
+  minWidth?: string | number;
+  maxWidth?: string | number;
+  height: string | number;
   transition: string;
   display?: string;
   overflow?: string;
   zIndex: string;
+  x?: number;
+  y?: number;
 }
 
 export interface ComponentState {
@@ -39,6 +41,13 @@ export interface ComponentState {
   zIndex?: number | string;
   background?: string;
   fixed?: boolean;
+}
+
+export interface LayoutCompMap {
+  compName: string;
+  comp: ReturnType<typeof defineComponent>;
+  layoutStyle: ComponentStyle;
+  fixed: boolean;
 }
 
 export type Coordinate = number | [number, number];
