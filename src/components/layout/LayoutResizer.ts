@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 15:59:11
+ * @LastEditTime: 2024-06-26 17:15:50
  * @Description:
  */
 
@@ -101,8 +101,8 @@ export default class LayoutResizer {
   private loadComponentWidthRange(layoutStrategy: LayoutStrategy, screenWidth: number): ComponentWidthRange[] {
     let layoutStyles: ComponentWidthRange[] | null = [];
     for (let item of this.screenResolutionMap) {
-      this.setDefaultStorage(item);
       if (item.layoutStrategy === layoutStrategy) {
+        this.setDefaultStorage(item);
         layoutStyles = this.getComponentWidthRange(screenWidth, item.resolution);
         break;
       }
@@ -125,18 +125,10 @@ export default class LayoutResizer {
       let layoutStorage = new Map();
       for (let i in layout.resolution) {
         const resolutionItem = layout.resolution[i].map(item => {
-          return {
-            id: item.compName,
-            fixed: item.fixed,
-            height: item.height,
-            width: Array.isArray(item.width) ? item.width[item.width.length - 1] : item.width,
-            x: Array.isArray(item.x) ? item.x[item.x.length - 1] : item.x,
-            y: item.y,
+          return Object.assign(item, {
             moved: false,
-            static: false,
-            show: item.show,
-            zIndex: item.zIndex
-          };
+            static: true,
+          });
         });
         layoutStorage.set(i, resolutionItem);
       }
@@ -185,7 +177,8 @@ export default class LayoutResizer {
           minWidth: `${item.minWidth}px`,
           minHeight: `${item.minHeight}px`,
         },
-        fixed: item.fixed
+        fixed: item.fixed,
+        show: item.show,
       });
     });
   }

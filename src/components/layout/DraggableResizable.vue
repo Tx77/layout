@@ -2,12 +2,13 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 16:09:42
+ * @LastEditTime: 2024-06-26 17:33:01
  * @Description: 
 -->
 <template>
 	<div :id="props.compName" ref="container" class="draggable-resizable" :style="computedContainerStyle">
 		<component
+			v-if="props.componentState.show"
 			:is="importComponent"
 			:compName="props.compName"
 			:width="computedContainerStyle.width"
@@ -71,7 +72,7 @@ const translateToPercent = (val: number): number => {
 };
 
 const containerStyle = reactive<ComponentState>({
-	id: props.compName,
+	compName: props.compName,
 	width: props.componentState.width,
 	height: props.componentState.height,
 	minWidth: props.componentState.minWidth,
@@ -125,7 +126,7 @@ watch(
 
 const translateComponentState = (componentState: ComponentState) => {
 	return {
-		id: props.compName,
+		compName: props.compName,
 		width: componentState.width,
 		height: componentState.height,
 		y: componentState.y,
@@ -184,7 +185,7 @@ const onMouseDown = (event: MouseEvent) => {
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
 			updatePosition(parseFloat(props.ghostStyle.left), parseFloat(props.ghostStyle.top), true);
-			emit("drag", props.compName, containerStyle.x, containerStyle.y);
+			emit("drag", props.compName, containerStyle.x, containerStyle.y, true);
 		});
 		mouseCursor.value = "grab";
 		document.removeEventListener("mousemove", onMouseMove);
@@ -233,12 +234,10 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
-		containerStyle.width = parseFloat(props.ghostStyle.width);
-		containerStyle.height = parseFloat(props.ghostStyle.height);
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
 		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
-		emit("resize", props.compName, containerStyle.width, containerStyle.height);
+		emit("resize", props.compName, parseFloat(props.ghostStyle.width), parseFloat(props.ghostStyle.height), false);
 	};
 
 	document.addEventListener("mousemove", onMouseMove);

@@ -2,16 +2,16 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 16:09:33
+ * @LastEditTime: 2024-06-26 18:04:18
  * @Description: 
 -->
 <template>
 	<div class="drag-container">
 		<DraggableResizable
 			v-for="comp in components"
-			:key="comp.id"
+			:key="comp.compName"
 			:componentState="comp"
-			:compName="comp.id"
+			:compName="comp.compName"
 			:ghostStyle="ghostStyle"
 			:directions="['bottom-right']"
 			:screenWidth="screenWidth"
@@ -31,6 +31,7 @@ import { PropType, onMounted, reactive, ref, watch } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
 import { ComponentState, GhostStyle, DistanceResult, GhostType } from "./params";
 import { LayoutCompMap, LayoutStrategy } from "./layout";
+import LayoutResizer from "./LayoutResizer";
 
 const props = defineProps({
 	layoutComponents: {
@@ -45,11 +46,15 @@ const props = defineProps({
 		type: String,
 		default: LayoutStrategy.PRO_RIGHT,
 	},
+	layoutResizer: {
+		type: Object as PropType<LayoutResizer>,
+		default: () => {},
+	},
 });
 
 const components = ref<ComponentState[]>([]);
 const currentComp = reactive<ComponentState>({
-	id: "",
+	compName: "",
 	x: 0,
 	y: 0,
 	width: 0,
@@ -61,27 +66,47 @@ const ghostStep = ref(0);
 const isGhost = ref(false);
 const ghostStyle = ref<GhostStyle>();
 const ghostWidth = ref(0);
-const layoutData = ref();
+const layoutStorageData = ref();
 
 watch(
 	() => props.layoutComponents,
 	(val) => {
-		components.value = val.map((item) => {
+		const localComponents = val.map((item) => {
 			return {
-				id: item.compName,
+				compName: item.compName,
 				width: translateToPxNumber(item.layoutStyle.width),
 				height: translateToPxNumber(item.layoutStyle.height),
 				minWidth: translateToPxNumber(item.layoutStyle.minWidth),
 				minHeight: translateToPxNumber(item.layoutStyle.minHeight),
 				x: translateToPxNumber(item.layoutStyle.left),
 				y: translateToPxNumber(item.layoutStyle.top),
-				zIndex: item.layoutStyle.zIndex,
 				transition: item.layoutStyle.transition,
+				zIndex: item.layoutStyle.zIndex,
 				fixed: item.fixed,
+				moved: false,
+				static: true,
+				show: item.show,
 			};
 		});
-		// console.log(components.value);
-		// loadState();
+		const storageComponents = loadState();
+		if (storageComponents && storageComponents.length > 0) {
+			for (let i = 0; i < localComponents.length; i++) {
+				for (let k = 0; k < storageComponents.length; k++) {
+					if (
+						storageComponents[k].compName === localComponents[i].compName &&
+						storageComponents[k].show &&
+						(storageComponents[k].moved || !storageComponents[k].static)
+					) {
+						localComponents[i] = Object.assign(storageComponents[k], {
+							width: translateToPxNumber(storageComponents[k].width),
+							x: translateToPxNumber(storageComponents[k].x),
+						});
+					}
+				}
+			}
+		}
+		components.value = localComponents;
+		console.log(components.value);
 	}
 );
 
@@ -92,53 +117,88 @@ const translateToPxNumber = (val: string): number => {
 	return parseFloat(val);
 };
 
+const translateToPercent = (val: number): number => {
+	if (Number.isNaN(val)) {
+		return val;
+	}
+	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
+};
+
 const loadState = () => {
-	layoutData.value = localStorage.getItem(props.layoutStrategy);
-	if (!layoutData) {
+	let data = [];
+	layoutStorageData.value = localStorage.getItem(props.layoutStrategy);
+	if (!layoutStorageData.value) {
 		return;
 	}
-	layoutData.value = JSON.parse(layoutData.value);
-	for (const resolutionRange in layoutData.value) {
+	layoutStorageData.value = JSON.parse(layoutStorageData.value);
+	for (const resolutionRange in layoutStorageData.value) {
 		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
 		if (props.screenWidth >= minWidth && props.screenWidth <= maxWidth) {
-			components.value = layoutData.value[resolutionRange];
+			data = layoutStorageData.value[resolutionRange];
 		}
 	}
-	// console.log(layoutData.value);
-	// console.log(components.value);
+	return data;
 };
 
 const saveState = () => {
-	for (const resolutionRange in layoutData.value) {
+	for (const resolutionRange in layoutStorageData.value) {
 		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
 		if (props.screenWidth >= minWidth && props.screenWidth <= maxWidth) {
-			layoutData.value[resolutionRange] = components.value;
+			for (let i = 0; i < components.value.length; i++) {
+				for (let k = 0; k < layoutStorageData.value[resolutionRange].length; k++) {
+					if (
+						(components.value[i].moved || !components.value[i].static) &&
+						components.value[i].compName === layoutStorageData.value[resolutionRange][k].compName
+					) {
+						layoutStorageData.value[resolutionRange][k] = formatStorageComponent(components.value[i]);
+					}
+				}
+			}
 		}
 	}
-	localStorage.setItem(props.layoutStrategy, JSON.stringify(layoutData.value));
+	localStorage.setItem(props.layoutStrategy, JSON.stringify(layoutStorageData.value));
 };
 
-const handleDrag = (id: string, x: number, y: number) => {
-	const component = components.value.find((c) => c.id === id);
+const formatStorageComponent = (comp: ComponentState) => {
+	return {
+		compName: comp.compName,
+		width: translateToPercent(comp.width) + "%",
+		height: comp.height,
+		minWidth: comp.minWidth,
+		minHeight: comp.minHeight,
+		x: translateToPercent(comp.x) + "%",
+		y: comp.y,
+		zIndex: comp.zIndex,
+		fixed: comp.fixed,
+		moved: comp.moved,
+		static: comp.static,
+		show: comp.show,
+	};
+};
+
+const handleDrag = (compName: string, x: number, y: number, moved: boolean) => {
+	const component = components.value.find((c) => c.compName === compName);
 	if (component) {
 		component.x = x;
 		component.y = y;
-		// saveState();
+		component.moved = moved;
+		saveState();
 	}
 };
 
-const handleResize = (id: string, width: number, height: number) => {
-	const component = components.value.find((c) => c.id === id);
+const handleResize = (compName: string, width: number, height: number, isStatic: boolean) => {
+	const component = components.value.find((c) => c.compName === compName);
 	if (component) {
 		component.width = width;
 		component.height = height;
-		// saveState();
+		component.static = isStatic;
+		saveState();
 	}
 };
 
 const setCurrentComponent = (currentComponent: ComponentState) => {
 	Object.assign(currentComp, {
-		id: currentComponent.id,
+		compName: currentComponent.compName,
 		x: currentComponent.x,
 		y: currentComponent.y,
 		width: currentComponent.width,
@@ -160,7 +220,7 @@ const setInitGhostWidth = (initGhostWidth: number) => {
  */
 const setComponentsZIndex = (currentCompId: string) => {
 	components.value = components.value.map((item) => {
-		if (item.id === currentCompId) {
+		if (item.compName === currentCompId) {
 			item.zIndex = "4";
 		} else {
 			item.zIndex = item.fixed ? "2" : "3";
@@ -181,7 +241,7 @@ const setGhostComponent = (isShow: boolean, currentComponentState: ComponentStat
 	}
 	if (type === GhostType.DRAG) {
 		ghostStep.value = parseFloat((props.screenWidth / 30).toFixed(0));
-		setComponentsZIndex(currentComponentState.id);
+		setComponentsZIndex(currentComponentState.compName);
 		setDragGhostComponent(currentComponentState);
 	}
 	if (type === GhostType.RESIZE) {
@@ -259,10 +319,10 @@ const resetComponentsY = (list?: ComponentState[]) => {
  * @param currentComponent
  */
 function findNearestXComponent(currentComponent: ComponentState): DistanceResult | null {
-	const nearestComponents = components.value.filter((item) => item.id !== currentComponent.id);
+	const nearestComponents = components.value.filter((item) => item.compName !== currentComponent.compName);
 	let nearestComponent: DistanceResult | null = null;
 	for (const component of nearestComponents) {
-		if (component.id === currentComponent.id) continue;
+		if (component.compName === currentComponent.compName) continue;
 		const leftDistance = currentComponent.x - (component.x + component.width);
 		const rightDistance = component.x - (currentComponent.x + currentComponent.width);
 
@@ -304,12 +364,13 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 			const step = Math.abs(ghostTop + currentComponentHeight - item.y);
 			topMatchingComponents.forEach((comp) => {
 				comp.y += step;
+				comp.moved = true;
 			});
 		});
 	}
 
 	const sourceComponents = components.value.map((item) => {
-		if (item.id === currentComponentState.id) {
+		if (item.compName === currentComponentState.compName) {
 			Object.assign(item, { x: ghostLeft, y: ghostTop });
 		}
 		return item;
@@ -339,7 +400,7 @@ const findTopMatchingComponents = (component: ComponentState): ComponentState[] 
 	return components.value.filter(
 		(item) =>
 			item.y >= component.y &&
-			item.id !== currentComp.id &&
+			item.compName !== currentComp.compName &&
 			(item.x >= component.x || item.x <= component.x + component.width)
 	);
 };
@@ -380,7 +441,7 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
 	}
 	const initY = 0;
 	const result = sourceComponents
-		.filter((item) => item.id !== currentComponentStyle.id)
+		.filter((item) => item.compName !== currentComponentStyle.compName)
 		.reduce(
 			(closest, cur) => {
 				const isOverlappingX =
@@ -419,10 +480,10 @@ const isOverlaping = (item1: ComponentState, item2: ComponentState): boolean => 
  * 找到被覆盖的组件
  * @param param
  */
-const findOverlappedComponents = ({ id, x, y, width, height }: ComponentState): ComponentState[] => {
+const findOverlappedComponents = ({ compName, x, y, width, height }: ComponentState): ComponentState[] => {
 	return components.value
-		.filter((comp) => comp.id !== id)
-		.filter((item) => isOverlaping(item, { id, x, y, width, height }));
+		.filter((comp) => comp.compName !== compName)
+		.filter((item) => isOverlaping(item, { compName, x, y, width, height }));
 };
 
 /**
@@ -476,11 +537,12 @@ const calcResizeGhost = (
 			const step = Math.abs(ghostTop + currentComponentHeight - item.y);
 			topMatchingComponents.forEach((comp) => {
 				comp.y += step;
+				comp.moved = true;
 			});
 		});
 	} else {
 		const sourceComponents = components.value.map((item) => {
-			if (item.id === currentComponentState.id) {
+			if (item.compName === currentComponentState.compName) {
 				Object.assign(item, { width: ghostWidth.value, height: currentComponentHeight });
 			}
 			return item;

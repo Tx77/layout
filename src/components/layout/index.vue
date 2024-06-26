@@ -23,6 +23,7 @@ const switchLayout = (strategy: LayoutStrategy) => {
 			:layoutComponents="[...layoutCompMap.values()]"
 			:screenWidth="screenWidth"
 			:layoutStrategy="layoutStrategy"
+			:layoutResizer="layoutResizer"
 		/>
 		<div>
 			<!-- <p>

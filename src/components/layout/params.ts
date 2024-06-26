@@ -1,7 +1,7 @@
 import { defineComponent } from "vue";
 
 export interface ComponentState {
-  id: string;
+  compName: string;
   x: number;
   y: number;
   width: number;
@@ -13,6 +13,9 @@ export interface ComponentState {
   overflow?: string;
   position?: string;
   transition?: string;
+  moved?: boolean;
+  static?: boolean;
+  show?: boolean;
 }
 
 export interface LayoutComponents extends ComponentState {

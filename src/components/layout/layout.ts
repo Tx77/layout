@@ -2,11 +2,10 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 14:06:08
+ * @LastEditTime: 2024-06-26 17:15:42
  * @Description:
  */
 
-import { defineComponent } from "vue";
 
 export enum LayoutStrategy {
   PRO_RIGHT = 'pro_right',
@@ -45,6 +44,7 @@ export interface LayoutCompMap {
   compName: string;
   layoutStyle: ComponentStyle;
   fixed: boolean;
+  show: boolean;
 }
 
 export type Coordinate = number | [number, number];
@@ -61,6 +61,8 @@ export type ComponentWidthRange = {
   zIndex: string;
   fixed: boolean;
   show: boolean;
+  moved?: boolean;
+  static?: boolean;
 };
 
 export type Resolution = {
