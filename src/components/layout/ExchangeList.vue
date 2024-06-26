@@ -42,7 +42,7 @@ const onMouseDown = (event: MouseEvent) => {
 	.header {
 		width: 100%;
 		height: 60px;
-		border-bottom: 1px #000 solid;
+		border-bottom: 1px #262b33 solid;
 	}
 }
 </style>

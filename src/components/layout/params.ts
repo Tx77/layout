@@ -27,16 +27,8 @@ export interface GhostStyle {
   backgroundColor: string;
   position: string;
   transition?: string;
+  cursor?: string;
 }
-
-
-export type ComponentStyle = {
-  width: string;
-  height: string;
-  top: string;
-  left: string;
-  id: string;
-};
 
 /**
  * 获取距离最近的组件

@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 14:34:26
+ * @LastEditTime: 2024-06-26 15:47:32
  * @Description: 
 -->
 <template>
@@ -13,11 +13,11 @@
 			:componentState="comp"
 			:compName="comp.id"
 			:ghostStyle="ghostStyle"
-			:setInitGhostWidth="setInitGhostWidth"
 			:directions="['bottom-right']"
 			:screenWidth="screenWidth"
 			@drag="handleDrag"
 			@resize="handleResize"
+			@setInitGhostWidth="setInitGhostWidth"
 			@setCurrentComponent="setCurrentComponent"
 			@setGhostComponent="setGhostComponent"
 			@setResizeGhostComponent="setResizeGhostComponent"
@@ -29,7 +29,7 @@
 <script setup lang="ts" name="DragResizeContainer">
 import { PropType, onMounted, reactive, ref, watch } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
-import { ComponentState, ComponentStyle, GhostStyle, DistanceResult, GhostType } from "./params";
+import { ComponentState, GhostStyle, DistanceResult, GhostType } from "./params";
 import { LayoutCompMap, LayoutStrategy } from "./layout";
 
 const props = defineProps({
@@ -143,14 +143,22 @@ const handleResize = (id: string, width: number, height: number) => {
 	}
 };
 
-const setCurrentComponent = (currentComponent: ComponentStyle): ComponentState => {
-	return Object.assign(currentComp, {
+const setCurrentComponent = (currentComponent: ComponentState) => {
+	Object.assign(currentComp, {
 		id: currentComponent.id,
-		x: parseFloat(currentComponent.left),
-		y: parseFloat(currentComponent.top),
-		width: parseFloat(currentComponent.width),
-		height: parseFloat(currentComponent.height),
+		x: currentComponent.x,
+		y: currentComponent.y,
+		width: currentComponent.width,
+		height: currentComponent.height,
 	});
+};
+
+/**
+ * 配置幽灵组件初始宽度
+ * @param initGhostWidth
+ */
+const setInitGhostWidth = (initGhostWidth: number) => {
+	ghostWidth.value = initGhostWidth;
 };
 
 /**
@@ -207,18 +215,11 @@ const setDragGhostComponent = (currentComponentState: ComponentState) => {
 					backgroundColor: "rgba(81, 37, 43, 1)",
 					position: "absolute",
 					transition: "0.1s ease-out",
+					cursor: "auto",
 				};
 			}
 		});
 	}
-};
-
-/**
- * 配置幽灵组件初始宽度
- * @param initGhostWidth
- */
-const setInitGhostWidth = (initGhostWidth: number) => {
-	ghostWidth.value = initGhostWidth;
 };
 
 /**
@@ -238,6 +239,7 @@ const setResizeGhostComponent = (currentComponentState: ComponentState) => {
 				backgroundColor: "rgba(81, 37, 43, 0.7)",
 				position: "absolute",
 				transition: "0.1s ease-out",
+				cursor: "se-resize",
 			};
 		});
 	}
@@ -413,8 +415,8 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
  */
 const isOverlaping = (item1: ComponentState, item2: ComponentState): boolean => {
 	return (
-		item1.x < item2.x + item2.width &&
-		item1.x + item1.width > item2.x &&
+		item1.x < item2.x + item2.width - 5 &&
+		item1.x + item1.width > item2.x + 5 &&
 		item1.y < item2.y + item2.height &&
 		item1.y + item1.height > item2.y
 	);

@@ -83,7 +83,7 @@ const onMouseDown = (event: MouseEvent) => {
 	height: 100%;
 	display: inline-flex;
 	margin-right: 10px;
-	border: 1px #000 solid;
+	border: 1px #262b33 solid;
 }
 
 .right {
@@ -94,7 +94,7 @@ const onMouseDown = (event: MouseEvent) => {
 	width: 40px;
 	height: 40px;
 	border-radius: 50%;
-	background-color: #000;
+	background-color: #262b33;
 	color: #fff;
 	margin-right: 20px;
 	display: flex;

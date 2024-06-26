@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 14:40:13
+ * @LastEditTime: 2024-06-26 15:50:48
  * @Description: 
 -->
 <template>
@@ -13,7 +13,7 @@
 			:width="containerStyle.width"
 			:left="containerStyle.x"
 			:cursor="mouseCursor"
-			@dragMouseDown="onMouseDown"
+			@dragMouseDown.stop.prevent="onMouseDown"
 		></component>
 		<div
 			v-for="dir in props.directions"
@@ -53,10 +53,9 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(["drag", "resize", "setCurrentComponent", "setGhostComponent", "setInitGhostWidth"]);
+const emit = defineEmits(["drag", "resize", "setInitGhostWidth", "setCurrentComponent", "setGhostComponent"]);
 const mouseCursor = ref("grab");
 
-const isSnap = ref(false);
 const startX = ref(0);
 const startY = ref(0);
 const startLeft = ref(0);
@@ -146,8 +145,7 @@ const translateComponentState = (componentState: ComponentState) => {
 };
 
 const updatePosition = (x: number, y: number, snap = false) => {
-	isSnap.value = snap;
-	if (isSnap.value) {
+	if (snap) {
 		containerStyle.transition = "0.08s ease-out";
 	} else {
 		containerStyle.transition = "none";
@@ -157,6 +155,7 @@ const updatePosition = (x: number, y: number, snap = false) => {
 };
 
 const updateSize = (width: number, height: number) => {
+	// containerStyle.transition = "0.05s ease-out";
 	containerStyle.width = width;
 	containerStyle.height = height;
 };
@@ -241,11 +240,11 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
-		containerStyle.width = props.ghostStyle.width;
-		containerStyle.height = props.ghostStyle.height;
-		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
+		containerStyle.width = parseFloat(props.ghostStyle.width);
+		containerStyle.height = parseFloat(props.ghostStyle.height);
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
+		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
 		emit("resize", props.compName, containerStyle.width, containerStyle.height);
 	};
 
@@ -271,7 +270,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 .draggable-resizable {
 	position: absolute;
 	// background-color: #15191c;
-	border: 1px solid #333;
+	// border: 1px solid #333;
 	box-sizing: border-box;
 	.header {
 		width: 100%;
