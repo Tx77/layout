@@ -4,6 +4,7 @@
 			{{ compName }}
 		</div>
 		<div>width: {{ props.width }}</div>
+		<div>left: {{ props.left }}</div>
 	</div>
 </template>
 
@@ -18,8 +19,12 @@ const props = defineProps({
 		default: "auto",
 	},
 	width: {
-		type: String,
-		default: "",
+		type: Number,
+		default: 0,
+	},
+	left: {
+		type: Number,
+		default: 0,
 	},
 });
 const emits = defineEmits(["dragMouseDown"]);
@@ -30,7 +35,7 @@ const onMouseDown = (event: MouseEvent) => {
 
 <style scoped lang="less">
 #comp3 {
-	background-color: blueviolet;
+	background-color: #15191c;
 	position: relative;
 	width: 100%;
 	height: 100%;

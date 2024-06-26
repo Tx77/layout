@@ -2,15 +2,16 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-25 19:56:15
+ * @LastEditTime: 2024-06-26 14:40:13
  * @Description: 
 -->
 <template>
-	<div :id="props.compName" ref="container" class="draggable-resizable" :style="props.layoutStyle">
+	<div :id="props.compName" ref="container" class="draggable-resizable" :style="computedContainerStyle">
 		<component
-			:is="comp"
+			:is="importComponent"
 			:compName="props.compName"
-			:width="props.layoutStyle.width"
+			:width="containerStyle.width"
+			:left="containerStyle.x"
 			:cursor="mouseCursor"
 			@dragMouseDown="onMouseDown"
 		></component>
@@ -24,16 +25,14 @@
 </template>
 
 <script setup lang="ts" name="DraggableResizable">
-import type { Component, PropType } from "vue";
-import { ref, reactive, defineEmits, watch } from "vue";
-import { GhostType } from "./params";
-import { ComponentStyle } from "./layout";
+import type { PropType } from "vue";
+import { ref, reactive, defineEmits, watch, computed, defineAsyncComponent } from "vue";
+import { ComponentState, GhostType } from "./params";
 
 const props = defineProps({
-	layoutStyle: {
-		type: Object as PropType<ComponentStyle>,
+	componentState: {
+		type: Object as PropType<ComponentState>,
 		default: () => {},
-		required: true,
 	},
 	ghostStyle: {
 		type: Object,
@@ -44,17 +43,13 @@ const props = defineProps({
 		required: false,
 		default: ["top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right"],
 	},
-	comp: {
-		type: Object as PropType<Component>,
-		required: true,
-	},
 	compName: {
 		type: String,
 		default: "",
 	},
-	fixed: {
-		type: Boolean,
-		default: false,
+	screenWidth: {
+		type: Number,
+		default: 0,
 	},
 });
 
@@ -69,55 +64,101 @@ const startTop = ref(0);
 
 const container = ref<HTMLElement | null>(null);
 
-// const containerStyle = reactive({
-// 	width: `${props.componentState.width}%`,
-// 	height: `${props.componentState.height}px`,
-// 	top: `${props.componentState.y}px`,
-// 	left: `${props.componentState.x}%`,
-// 	zIndex: props.componentState.zIndex,
-// 	transition: "none",
-// });
+const translateToPercent = (val: number): number => {
+	if (Number.isNaN(val)) {
+		return val;
+	}
+	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
+};
 
-const containerStyle = reactive(props.layoutStyle);
+const translateToPxNumber = (val: string): number => {
+	if (val.indexOf("%") > -1) {
+		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(4));
+	}
+	return parseFloat(val);
+};
+
+const containerStyle = reactive<ComponentState>({
+	id: props.compName,
+	width: props.componentState.width,
+	height: props.componentState.height,
+	minWidth: props.componentState.minWidth,
+	minHeight: props.componentState.minHeight,
+	x: props.componentState.x,
+	y: props.componentState.y,
+	zIndex: props.componentState.zIndex,
+	transition: props.componentState.transition,
+});
+
+const importComponent = computed(() => {
+	return defineAsyncComponent(() => {
+		return import(`./${props.compName}.vue`);
+	});
+});
+
+const computedContainerStyle = computed(() => {
+	return {
+		width: `${containerStyle.width}px`,
+		height: `${containerStyle.height}px`,
+		top: `${containerStyle.y}px`,
+		left: `${containerStyle.x}px`,
+		zIndex: containerStyle.zIndex,
+		transition: containerStyle.transition,
+	};
+});
 
 watch(
-	() => props.layoutStyle,
+	() => props.componentState,
 	(val) => {
-		Object.assign(containerStyle, val);
+		Object.assign(containerStyle, translateComponentState(val));
 	}
 );
 
 watch(
-	() => props.layoutStyle.y,
+	() => props.componentState.y,
 	(val) => {
 		if (!isNaN(val)) {
-			containerStyle.top = `${val}px`;
+			containerStyle.y = val;
 			containerStyle.transition = "0.08s ease-out";
 		}
 	}
 );
 
 watch(
-	() => props.layoutStyle.zIndex,
+	() => props.componentState.zIndex,
 	(val) => {
 		containerStyle.zIndex = val;
 	}
 );
 
-const updatePosition = (left: number, top: number, snap = false) => {
+const translateComponentState = (componentState: ComponentState) => {
+	return {
+		id: props.compName,
+		width: componentState.width,
+		height: componentState.height,
+		y: componentState.y,
+		x: componentState.x,
+		minWidth: componentState.minWidth,
+		minHeight: componentState.minHeight,
+		zIndex: componentState.zIndex,
+		transition: componentState.transition,
+	};
+};
+
+const updatePosition = (x: number, y: number, snap = false) => {
 	isSnap.value = snap;
 	if (isSnap.value) {
 		containerStyle.transition = "0.08s ease-out";
 	} else {
 		containerStyle.transition = "none";
 	}
-	containerStyle.left = `${left}px`;
-	containerStyle.top = `${top}px`;
+	containerStyle.x = x;
+	containerStyle.y = y;
 };
 
 const updateSize = (width: number, height: number) => {
-	containerStyle.width = `${width}px`;
-	containerStyle.height = `${height}px`;
+	containerStyle.width = width;
+	containerStyle.height = height;
 };
 
 /**
@@ -125,15 +166,15 @@ const updateSize = (width: number, height: number) => {
  * @param event
  */
 const onMouseDown = (event: MouseEvent) => {
-	if (props.fixed) {
+	if (props.componentState.fixed) {
 		mouseCursor.value = "auto";
 		return;
 	}
 	mouseCursor.value = "grabbing";
 	startX.value = event.clientX;
 	startY.value = event.clientY;
-	startLeft.value = parseInt(containerStyle.left);
-	startTop.value = parseInt(containerStyle.top);
+	startLeft.value = containerStyle.x;
+	startTop.value = containerStyle.y;
 	emit("setCurrentComponent", containerStyle);
 	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 
@@ -150,8 +191,8 @@ const onMouseDown = (event: MouseEvent) => {
 	const onMouseUp = () => {
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
-			updatePosition(parseInt(props.ghostStyle.left), parseInt(props.ghostStyle.top), true);
-			emit("drag", props.compName, parseInt(containerStyle.left), parseInt(containerStyle.top));
+			updatePosition(parseFloat(props.ghostStyle.left), parseFloat(props.ghostStyle.top), true);
+			emit("drag", props.compName, containerStyle.x, containerStyle.y);
 		});
 		mouseCursor.value = "grab";
 		document.removeEventListener("mousemove", onMouseMove);
@@ -170,8 +211,8 @@ const onMouseDown = (event: MouseEvent) => {
 const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startX = event.clientX;
 	const startY = event.clientY;
-	const startWidth = parseInt(containerStyle.width);
-	const startHeight = parseInt(containerStyle.height);
+	const startWidth = containerStyle.width;
+	const startHeight = containerStyle.height;
 	emit("setCurrentComponent", containerStyle);
 	emit("setInitGhostWidth", startWidth);
 
@@ -190,6 +231,11 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		} else if (dir.includes("top")) {
 			newHeight = startHeight - (moveEvent.clientY - startY);
 		}
+		//* 最小宽高限制
+		if (newWidth <= (containerStyle.minWidth as number) || newHeight <= (containerStyle.minHeight as number)) {
+			return;
+		}
+
 		emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
 		updateSize(newWidth, newHeight);
 	};
@@ -200,7 +246,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
-		emit("resize", props.compName, parseInt(containerStyle.width), parseInt(containerStyle.height));
+		emit("resize", props.compName, containerStyle.width, containerStyle.height);
 	};
 
 	document.addEventListener("mousemove", onMouseMove);

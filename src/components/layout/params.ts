@@ -6,6 +6,8 @@ export interface ComponentState {
   y: number;
   width: number;
   height: number;
+  minWidth?: number;
+  minHeight?: number;
   zIndex?: number | string;
   fixed?: boolean;
   overflow?: string;

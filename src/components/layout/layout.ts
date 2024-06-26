@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-25 19:32:35
+ * @LastEditTime: 2024-06-26 14:06:08
  * @Description:
  */
 
@@ -19,8 +19,9 @@ export interface ComponentStyle {
   left: string;
   top: string;
   width: string;
-  minWidth?: string;
+  minWidth: string;
   maxWidth?: string;
+  minHeight: string;
   height: string;
   transition: string;
   display?: string;
@@ -29,7 +30,6 @@ export interface ComponentStyle {
 }
 
 export interface ComponentState {
-  comp: ReturnType<typeof defineComponent>;
   x: number | string;
   y: number | string;
   width?: number | string;
@@ -43,7 +43,6 @@ export interface ComponentState {
 
 export interface LayoutCompMap {
   compName: string;
-  comp: ReturnType<typeof defineComponent>;
   layoutStyle: ComponentStyle;
   fixed: boolean;
 }
@@ -52,9 +51,10 @@ export type Coordinate = number | [number, number];
 
 export type ComponentWidthRange = {
   width: [number, number];
+  minWidth: number;
+  minHeight: number;
   height: number;
   compName: string;
-  comp: ReturnType<typeof defineComponent>;
   background?: string;
   x: Coordinate;
   y: number;

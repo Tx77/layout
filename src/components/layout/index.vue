@@ -25,12 +25,12 @@ const switchLayout = (strategy: LayoutStrategy) => {
 			:layoutStrategy="layoutStrategy"
 		/>
 		<div>
-			<p>
+			<!-- <p>
 				screenWidth: {{ screenWidth }}px
 				<button @click="switchLayout(LayoutStrategy.PRO_RIGHT)">专业版 - 右</button>
 				<button @click="switchLayout(LayoutStrategy.STANDARD)">标准版</button>
 				<button @click="switchLayout(LayoutStrategy.PRO_LEFT)">专业版 - 左</button>
-			</p>
+			</p> -->
 		</div>
 	</div>
 </template>

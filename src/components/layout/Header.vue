@@ -2,7 +2,6 @@
 	<div id="comp1" @mousedown.prevent="onMouseDown" :style="{ cursor }">
 		<div class="left">
 			<div class="item">Header</div>
-			<!-- width: {{ props.layoutStyle.width }} -->
 			<div class="item-box">
 				<div class="item">123</div>
 				<div class="item">asd</div>
@@ -33,8 +32,8 @@ const props = defineProps({
 		default: "",
 	},
 	width: {
-		type: String,
-		default: "",
+		type: Number,
+		default: 0,
 	},
 	cursor: {
 		type: String,
@@ -50,7 +49,7 @@ const onMouseDown = (event: MouseEvent) => {
 
 <style scoped>
 #comp1 {
-	background-color: red;
+	background-color: #15191c;
 	display: flex;
 	justify-content: space-between;
 	position: relative;

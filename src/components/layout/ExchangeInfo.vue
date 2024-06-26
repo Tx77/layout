@@ -1,13 +1,14 @@
 <template>
-	<div id="comp5">
+	<div id="comp4">
 		<div class="header" @mousedown.prevent="onMouseDown" :style="{ cursor }">
 			{{ compName }}
 		</div>
 		<div>width: {{ props.width }}</div>
+		<div>left: {{ props.left }}</div>
 	</div>
 </template>
 
-<script setup lang="ts" name="UserExchangeTable">
+<script setup lang="ts" name="ExchangeInfo">
 const props = defineProps({
 	compName: {
 		type: String,
@@ -18,8 +19,12 @@ const props = defineProps({
 		default: "auto",
 	},
 	width: {
-		type: String,
-		default: "",
+		type: Number,
+		default: 0,
+	},
+	left: {
+		type: Number,
+		default: 0,
 	},
 });
 const emits = defineEmits(["dragMouseDown"]);
@@ -29,8 +34,8 @@ const onMouseDown = (event: MouseEvent) => {
 </script>
 
 <style scoped lang="less">
-#comp5 {
-	background-color: chocolate;
+#comp4 {
+	background-color: #15191c;
 	position: relative;
 	width: 100%;
 	height: 100%;

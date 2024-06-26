@@ -1,6 +1,5 @@
 <template>
 	<div class="app">
-		<div class="header" :style="{ width: screenWidth + 'px' }">Header</div>
 		<div class="drag-container">
 			<DraggableResizable
 				v-for="comp in components"
@@ -27,12 +26,51 @@ import { ComponentState, ComponentStyle, GhostStyle, DistanceResult, GhostType }
 
 const screenWidth = document.querySelector("#app")?.clientWidth;
 const defaultComponents = [
-	{ id: "comp1", x: 645, y: 100, width: 600, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp2", x: 1075, y: 500, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp3", x: 746, y: 800, width: 400, height: 200, zIndex: "3", fixed: false },
-	{ id: "comp4", x: 521, y: 500, width: 410, height: 300, zIndex: "3", fixed: false },
-	{ id: "comp5", x: 0, y: 400, width: screenWidth, height: 100, zIndex: "2", fixed: true },
-	{ id: "comp6", x: 1374, y: 100, width: 432, height: 200, zIndex: "3", fixed: false },
+	{
+		id: "Header",
+		width: 2560,
+		height: 60,
+		x: 0,
+		y: 0,
+		zIndex: "2",
+		fixed: true,
+	},
+	{
+		id: "ExchangeChart",
+		width: 1696,
+		height: 610,
+		x: 0,
+		y: 60,
+		zIndex: "3",
+		fixed: false,
+	},
+	{
+		id: "ExchangeList",
+		width: 430.0006,
+		height: 610,
+		x: 1696,
+		y: 60,
+		zIndex: "3",
+		fixed: false,
+	},
+	{
+		id: "ExchangeInfo",
+		width: 430.0006,
+		height: 968,
+		x: 2126.0006,
+		y: 60,
+		zIndex: "3",
+		fixed: false,
+	},
+	{
+		id: "UserExchangeTable",
+		width: 2128,
+		height: 356,
+		x: 0,
+		y: 670,
+		zIndex: "3",
+		fixed: false,
+	},
 ];
 
 const components = ref<ComponentState[]>([]);
@@ -335,7 +373,7 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
 	} else {
 		sourceComponents = components.value;
 	}
-	const initY = 100;
+	const initY = 0;
 	const result = sourceComponents
 		.filter((item) => item.id !== currentComponentStyle.id)
 		.reduce(
@@ -465,15 +503,6 @@ onMounted(() => {
 	background-color: #262b32;
 	overflow-x: hidden;
 	overflow-y: auto;
-	.header {
-		height: 100px;
-		background-color: #15191c;
-		color: #fff;
-		position: fixed;
-		top: 0;
-		left: 0;
-		z-index: 2;
-	}
 	.drag-container {
 		position: relative;
 	}
