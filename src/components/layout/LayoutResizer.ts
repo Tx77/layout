@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 14:04:11
+ * @LastEditTime: 2024-06-26 15:59:11
  * @Description:
  */
 
@@ -175,9 +175,9 @@ export default class LayoutResizer {
         compName: item.compName,
         layoutStyle: {
           position: "absolute",
-          left: `${compPosition.x}px`,
+          left: `${compPosition.x}%`,
           top: `${item.y}px`,
-          width: `${compPosition.width}px`,
+          width: `${compPosition.width}%`,
           height: `${item.height}px`,
           transition: "all 0.2s ease-out",
           overflow: 'hidden',
@@ -220,8 +220,8 @@ export default class LayoutResizer {
       range: { min: number; max: number; },
       screenWidth: number
     ): { minPercentage: number; maxPercentage: number; } => {
-      const minPercentage = (range.min / screenWidth);
-      const maxPercentage = (range.max / screenWidth);
+      const minPercentage = (range.min / screenWidth) * 100;
+      const maxPercentage = (range.max / screenWidth) * 100;
       return { minPercentage, maxPercentage };
     };
 
@@ -253,8 +253,8 @@ export default class LayoutResizer {
     );
     const xPercentage = toPercentage({ min: Math.round(calculatedX), max: Math.round(calculatedX) }, screenWidth);
     return {
-      x: (xPercentage.minPercentage * screenWidth).toFixed(4),
-      width: (widthPercentage.minPercentage * screenWidth).toFixed(4),
+      x: (xPercentage.minPercentage).toFixed(4),
+      width: (widthPercentage.minPercentage).toFixed(4),
     };
   }
 }

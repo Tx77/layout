@@ -19,12 +19,12 @@ const props = defineProps({
 		default: "auto",
 	},
 	width: {
-		type: Number,
-		default: 0,
+		type: String,
+		default: "",
 	},
 	left: {
-		type: Number,
-		default: 0,
+		type: String,
+		default: "",
 	},
 });
 const emits = defineEmits(["dragMouseDown"]);

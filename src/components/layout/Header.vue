@@ -32,8 +32,8 @@ const props = defineProps({
 		default: "",
 	},
 	width: {
-		type: Number,
-		default: 0,
+		type: String,
+		default: "",
 	},
 	cursor: {
 		type: String,

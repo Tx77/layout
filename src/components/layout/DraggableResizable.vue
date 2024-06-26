@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 15:50:48
+ * @LastEditTime: 2024-06-26 16:09:42
  * @Description: 
 -->
 <template>
@@ -10,8 +10,8 @@
 		<component
 			:is="importComponent"
 			:compName="props.compName"
-			:width="containerStyle.width"
-			:left="containerStyle.x"
+			:width="computedContainerStyle.width"
+			:left="computedContainerStyle.left"
 			:cursor="mouseCursor"
 			@dragMouseDown.stop.prevent="onMouseDown"
 		></component>
@@ -70,13 +70,6 @@ const translateToPercent = (val: number): number => {
 	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
 };
 
-const translateToPxNumber = (val: string): number => {
-	if (val.indexOf("%") > -1) {
-		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(4));
-	}
-	return parseFloat(val);
-};
-
 const containerStyle = reactive<ComponentState>({
 	id: props.compName,
 	width: props.componentState.width,
@@ -97,10 +90,10 @@ const importComponent = computed(() => {
 
 const computedContainerStyle = computed(() => {
 	return {
-		width: `${containerStyle.width}px`,
+		width: `${translateToPercent(containerStyle.width)}%`,
 		height: `${containerStyle.height}px`,
 		top: `${containerStyle.y}px`,
-		left: `${containerStyle.x}px`,
+		left: `${translateToPercent(containerStyle.x)}%`,
 		zIndex: containerStyle.zIndex,
 		transition: containerStyle.transition,
 	};

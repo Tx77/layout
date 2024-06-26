@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 15:47:32
+ * @LastEditTime: 2024-06-26 16:09:33
  * @Description: 
 -->
 <template>
@@ -69,12 +69,12 @@ watch(
 		components.value = val.map((item) => {
 			return {
 				id: item.compName,
-				width: parseFloat(item.layoutStyle.width),
-				height: parseFloat(item.layoutStyle.height),
-				minWidth: parseFloat(item.layoutStyle.minWidth),
-				minHeight: parseFloat(item.layoutStyle.minHeight),
-				x: parseFloat(item.layoutStyle.left),
-				y: parseFloat(item.layoutStyle.top),
+				width: translateToPxNumber(item.layoutStyle.width),
+				height: translateToPxNumber(item.layoutStyle.height),
+				minWidth: translateToPxNumber(item.layoutStyle.minWidth),
+				minHeight: translateToPxNumber(item.layoutStyle.minHeight),
+				x: translateToPxNumber(item.layoutStyle.left),
+				y: translateToPxNumber(item.layoutStyle.top),
 				zIndex: item.layoutStyle.zIndex,
 				transition: item.layoutStyle.transition,
 				fixed: item.fixed,
@@ -90,13 +90,6 @@ const translateToPxNumber = (val: string): number => {
 		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(4));
 	}
 	return parseFloat(val);
-};
-
-const translateToPercent = (val: number): number => {
-	if (Number.isNaN(val)) {
-		return val;
-	}
-	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
 };
 
 const loadState = () => {
@@ -415,8 +408,8 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
  */
 const isOverlaping = (item1: ComponentState, item2: ComponentState): boolean => {
 	return (
-		item1.x < item2.x + item2.width - 5 &&
-		item1.x + item1.width > item2.x + 5 &&
+		item1.x < item2.x + item2.width &&
+		item1.x + item1.width > item2.x &&
 		item1.y < item2.y + item2.height &&
 		item1.y + item1.height > item2.y
 	);
