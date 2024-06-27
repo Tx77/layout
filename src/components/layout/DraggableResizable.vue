@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 17:33:01
+ * @LastEditTime: 2024-06-27 15:10:51
  * @Description: 
 -->
 <template>
@@ -169,10 +169,10 @@ const onMouseDown = (event: MouseEvent) => {
 	startLeft.value = containerStyle.x;
 	startTop.value = containerStyle.y;
 	emit("setCurrentComponent", containerStyle);
-	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
+	emit("setGhostComponent", true, containerStyle, GhostType.DRAG, "none");
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
-		emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
+		emit("setGhostComponent", true, containerStyle, GhostType.DRAG, "0.1s ease-out");
 		//* 使用 requestAnimationFrame 来优化性能
 		requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
@@ -182,9 +182,11 @@ const onMouseDown = (event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
-		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
+		emit("setGhostComponent", false, containerStyle, GhostType.DRAG, "none");
 		requestAnimationFrame(() => {
-			updatePosition(parseFloat(props.ghostStyle.left), parseFloat(props.ghostStyle.top), true);
+			if (props.ghostStyle) {
+				updatePosition(parseFloat(props.ghostStyle.left), parseFloat(props.ghostStyle.top), true);
+			}
 			emit("drag", props.compName, containerStyle.x, containerStyle.y, true);
 		});
 		mouseCursor.value = "grab";
@@ -229,14 +231,14 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			return;
 		}
 
-		emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
+		emit("setGhostComponent", true, containerStyle, GhostType.RESIZE, "0.1s ease-out");
 		updateSize(newWidth, newHeight);
 	};
 
 	const onMouseUp = () => {
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
-		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE);
+		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE, "none");
 		emit("resize", props.compName, parseFloat(props.ghostStyle.width), parseFloat(props.ghostStyle.height), false);
 	};
 
