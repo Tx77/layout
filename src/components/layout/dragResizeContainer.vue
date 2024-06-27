@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-27 16:52:08
+ * @LastEditTime: 2024-06-27 18:33:31
  * @Description: 
 -->
 <template>
@@ -349,6 +349,7 @@ function findNearestXComponent(currentComponent: ComponentState): DistanceResult
 
 const beforeGhostLeft = ref(-1);
 const beforeGhostTop = ref(0);
+const isColliedComponentTop = ref(false);
 
 /**
  * 计算drag幽灵组件坐标
@@ -364,6 +365,10 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 
 	ghostTop = findClosestY(currentComponentState);
 
+	const initCurrentComponent = initComponents.value.filter(
+		(item) => item.compName === currentComponentState.compName
+	)[0];
+
 	const ghostOverlappedComponents = findOverlappedComponents(
 		Object.assign(currentComponentState, { x: ghostLeft, y: ghostTop })
 	);
@@ -378,7 +383,10 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 			const colliedComponentRight =
 				currentComponentX <= item.x + item.width - ghostStep.value && currentComponentX >= item.x;
 			//* 与重叠组件底部碰撞
-			const colliedComponentBottom = currentComponentY <= item.y + item.height && currentComponentY >= item.y;
+			const colliedComponentBottom =
+				initCurrentComponent.y >= item.y + item.height &&
+				currentComponentY <= item.y + item.height &&
+				currentComponentY >= item.y;
 			const rePosition = () => {
 				const topMatchingComponents = findBottomMatchingComponents(item);
 				const step = Math.abs(ghostTop + currentComponentHeight - item.y);
@@ -387,7 +395,7 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 					comp.moved = true;
 				});
 			};
-			if (colliedComponentLeft || colliedComponentRight) {
+			if (colliedComponentLeft || colliedComponentRight || colliedComponentBottom) {
 				rePosition();
 			} else {
 				if (beforeGhostLeft.value >= 0) {
@@ -402,25 +410,23 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 		);
 		if (overlappedComponents && overlappedComponents.length > 0) {
 			overlappedComponents.forEach((item) => {
-				if (item.y >= currentComponentY && ghostTop + currentComponentHeight <= item.y) {
-					if (item.height < currentComponentHeight) {
-						const restComponents = components.value.filter((comp) => comp.compName !== currentComponentState.compName);
-						if (
-							currentComponentY + currentComponentHeight >= item.y + item.height &&
-							ghostTop + currentComponentHeight <= item.y
-						) {
-							// console.log("====");
-							// item.y = findClosestY(item, restComponents);
-							// ghostTop = item.y + item.height;
-						}
-
-						// if (currentComponentHeight + currentComponentY >= item.height + item.y) {
-						//   const closestY = findClosestY(item, restComponents);
-						//   ghostTop = closestY + item.height;
-						//   item.y = closestY
-						// }
-					}
-				}
+				console.log(item.compName);
+				// const colliedComponentTop = () => {
+				// 	if (item.height <= currentComponentHeight) {
+				// 		return (
+				// 			initCurrentComponent.y + initCurrentComponent.height <= item.y &&
+				// 			currentComponentY + currentComponentHeight >= item.y + item.height
+				// 		);
+				// 	}
+				// 	return false;
+				// };
+				// console.log("real", colliedComponentTop());
+				// const restComponents = components.value.filter((comp) => comp.compName !== currentComponentState.compName);
+				// if (colliedComponentTop()) {
+				// 	isColliedComponentTop.value = colliedComponentTop();
+				// 	item.y = findClosestY(item, restComponents);
+				// 	ghostTop = item.y + item.height;
+				// }
 			});
 		} else {
 		}
@@ -469,14 +475,14 @@ const findBottomMatchingComponents = (component: ComponentState): ComponentState
  * 找到在初始数据下，当前组件宽度范围内且初始y小于当前组件初始y的组件
  * @param component
  */
-const findTopSnapComponents = (component: ComponentState): ComponentState[] => {
+const findTopMatchingComponents = (component: ComponentState): ComponentState[] => {
 	return initComponents.value.filter(
 		(item) =>
 			item.compName != currentComp.compName &&
 			item.compName != component.compName &&
-			item.y + item.height === component.y &&
-			((item.x >= component.x && item.x + item.width <= component.x + component.width) ||
-				(item.x <= component.x && item.x + item.width <= component.x + component.width))
+			item.y + item.height <= component.y &&
+			item.x >= component.x &&
+			item.x + item.width <= component.x + component.width
 	);
 };
 
