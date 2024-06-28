@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:09:47
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 15:05:10
+ * @LastEditTime: 2024-06-28 11:20:11
  * @Description: 
  */
 
@@ -31,21 +31,21 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
         { width: [738, 836], compName: 'ExchangeChart', height: 610, x: 0, y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
         { width: [266, 300], compName: 'ExchangeList', height: 610, x: [738, 836], y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
         { width: [266, 300], compName: 'ExchangeInfo', height: 968, x: [1004, 1136], y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
-        { width: [1012, 1138], compName: 'UserExchangeTable', height: 356, x: 0, y: 670, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
+        { width: [1012, 1138], compName: 'UserExchangeTable', height: 358, x: 0, y: 670, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
       ],
       '[1441, 1920]': [
         { width: [1441, 1920], compName: 'Header', height: 60, x: 0, y: 0, zIndex: '2', fixed: true, show: true, minWidth: 240, minHeight: 60 },
         { width: [836, 1196], compName: 'ExchangeChart', height: 610, x: 0, y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
         { width: [300, 360], compName: 'ExchangeList', height: 610, x: [836, 1196], y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
         { width: [300, 360], compName: 'ExchangeInfo', height: 968, x: [1136, 1556], y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
-        { width: [1138, 1558], compName: 'UserExchangeTable', height: 356, x: 0, y: 670, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
+        { width: [1138, 1558], compName: 'UserExchangeTable', height: 358, x: 0, y: 670, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
       ],
       '[1921, 2560]': [
         { width: [1921, 2560], compName: 'Header', height: 60, x: 0, y: 0, zIndex: '2', fixed: true, show: true, minWidth: 240, minHeight: 60 },
         { width: [1196, 1696], compName: 'ExchangeChart', height: 610, x: 0, y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
         { width: [360, 430], compName: 'ExchangeList', height: 610, x: [1196, 1696], y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
         { width: [360, 430], compName: 'ExchangeInfo', height: 968, x: [1556, 2126], y: 60, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60 },
-        { width: [1558, 2126], compName: 'UserExchangeTable', height: 356, x: 0, y: 670, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60, },
+        { width: [1558, 2126], compName: 'UserExchangeTable', height: 357, x: 0, y: 670, zIndex: '3', fixed: false, show: true, minWidth: 240, minHeight: 60, },
       ],
     },
   },

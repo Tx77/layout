@@ -16,6 +16,7 @@ export interface ComponentState {
   moved?: boolean;
   static?: boolean;
   show?: boolean;
+  isGap?: boolean;
 }
 
 export interface LayoutComponents extends ComponentState {
