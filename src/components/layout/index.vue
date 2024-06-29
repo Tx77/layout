@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { LayoutStrategy } from "./layout";
 import LayoutResizer from "./LayoutResizer";
 import { contractTradeLayout } from "./contractTrade";
-import DragResizeContainer from "./DragResizeContainer.vue";
+import DragResizeContainer from "./dragResizeContainer.vue";
 
 const layoutStrategy = ref(LayoutStrategy.PRO_RIGHT);
 const layoutResizer = new LayoutResizer("#app", layoutStrategy.value, contractTradeLayout);

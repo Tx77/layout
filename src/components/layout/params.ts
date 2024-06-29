@@ -23,8 +23,6 @@ export interface LayoutComponents extends ComponentState {
   comp: ReturnType<typeof defineComponent>;
 }
 export interface GhostStyle {
-  top: string;
-  left: string;
   width: string;
   height: string;
   zIndex?: string;
@@ -32,6 +30,7 @@ export interface GhostStyle {
   position: string;
   transition?: string;
   cursor?: string;
+  transform?: string;
 }
 
 /**

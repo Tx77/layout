@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-28 10:07:08
+ * @LastEditTime: 2024-06-29 17:03:07
  * @Description: 
 -->
 <template>
@@ -28,7 +28,7 @@
 <script setup lang="ts" name="DraggableResizable">
 import type { PropType } from "vue";
 import { ref, reactive, defineEmits, watch, computed, defineAsyncComponent } from "vue";
-import { ComponentState, GhostType } from "./params";
+import { ComponentState, GhostStyle, GhostType } from "./params";
 
 const props = defineProps({
 	componentState: {
@@ -36,7 +36,7 @@ const props = defineProps({
 		default: () => {},
 	},
 	ghostStyle: {
-		type: Object,
+		type: Object as PropType<GhostStyle>,
 		default: () => {},
 	},
 	directions: {
@@ -54,7 +54,7 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(["drag", "resize", "setInitGhostWidth", "setCurrentComponent", "setGhostComponent"]);
+const emit = defineEmits(["drag", "resize", "setInitWidth", "setCurrentComponent", "setGhostComponent", "setInitX"]);
 const mouseCursor = ref("grab");
 
 const startX = ref(0);
@@ -69,6 +69,17 @@ const translateToPercent = (val: number): number => {
 		return val;
 	}
 	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
+};
+
+/**
+ * 转化为数字类型的像素
+ * @param val
+ */
+const translateToPxNumber = (val: string): number => {
+	if (val.indexOf("%") > -1) {
+		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(0));
+	}
+	return parseFloat(val);
 };
 
 const containerStyle = reactive<ComponentState>({
@@ -149,7 +160,7 @@ const updatePosition = (x: number, y: number, snap = false) => {
 };
 
 const updateSize = (width: number, height: number) => {
-	// containerStyle.transition = "0.05s ease-out";
+	containerStyle.transition = "none";
 	containerStyle.width = width;
 	containerStyle.height = height;
 };
@@ -169,6 +180,7 @@ const onMouseDown = (event: MouseEvent) => {
 	startLeft.value = containerStyle.x;
 	startTop.value = containerStyle.y;
 	emit("setCurrentComponent", containerStyle);
+	emit("setInitX", containerStyle.x);
 	emit("setGhostComponent", true, containerStyle, GhostType.DRAG, "none");
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
@@ -185,7 +197,11 @@ const onMouseDown = (event: MouseEvent) => {
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG, "none");
 		requestAnimationFrame(() => {
 			if (props.ghostStyle) {
-				updatePosition(parseFloat(props.ghostStyle.left), parseFloat(props.ghostStyle.top), true);
+				const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
+				if (position) {
+					const [x, y] = position;
+					updatePosition(x, y, true);
+				}
 			}
 			emit("drag", props.compName, containerStyle.x, containerStyle.y, true);
 		});
@@ -208,63 +224,85 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startY = event.clientY;
 	const startWidth = containerStyle.width;
 	const startHeight = containerStyle.height;
+	containerStyle.zIndex = "2";
 	emit("setCurrentComponent", containerStyle);
-	emit("setInitGhostWidth", startWidth);
-
+	emit("setInitWidth", startWidth);
+	emit("setGhostComponent", true, containerStyle, GhostType.RESIZE, "none");
+	let newWidth = startWidth;
+	let newHeight = startHeight;
+	let isResizing = true;
 	const onMouseMove = (moveEvent: MouseEvent) => {
-		let newWidth = startWidth;
-		let newHeight = startHeight;
-
+		if (!isResizing) {
+			return;
+		}
 		if (dir.includes("right")) {
 			newWidth = startWidth + (moveEvent.clientX - startX);
 		} else if (dir.includes("left")) {
 			newWidth = startWidth - (moveEvent.clientX - startX);
 		}
-
+		if (newWidth < (containerStyle.minWidth as number)) {
+			newWidth = containerStyle.minWidth as number;
+		}
 		if (dir.includes("bottom")) {
 			newHeight = startHeight + (moveEvent.clientY - startY);
 		} else if (dir.includes("top")) {
 			newHeight = startHeight - (moveEvent.clientY - startY);
 		}
-		//* 最小宽高限制
-		if (newWidth <= (containerStyle.minWidth as number) || newHeight <= (containerStyle.minHeight as number)) {
-			return;
+		if (newHeight < (containerStyle.minHeight as number)) {
+			newHeight = containerStyle.minHeight as number;
 		}
 
 		emit("setGhostComponent", true, containerStyle, GhostType.RESIZE, "0.1s ease-out");
 		updateSize(newWidth, newHeight);
+		requestAnimationFrame(() => {});
 	};
 
 	const onMouseUp = () => {
+		isResizing = false;
+		containerStyle.zIndex = "3";
+		const finalWidth = parseFloat(props.ghostStyle.width);
+		const finalHeight = parseFloat(props.ghostStyle.height);
+		if (props.ghostStyle) {
+			emit(
+				"setGhostComponent",
+				false,
+				Object.assign(containerStyle, {
+					width: finalWidth,
+					height: finalHeight,
+				}),
+				GhostType.RESIZE,
+				"none"
+			);
+			emit("resize", props.compName, finalWidth, finalHeight, false);
+		}
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
-		emit("setGhostComponent", false, containerStyle, GhostType.RESIZE, "none");
-		emit("resize", props.compName, parseFloat(props.ghostStyle.width), parseFloat(props.ghostStyle.height), false);
 	};
 
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 };
 
-//* 使用 ResizeObserver 来监听容器大小变化
-// const resizeObserver = new ResizeObserver((entries) => {
-// 	console.log(`entries, ${entries}`);
-// 	const entry = entries[0];
-// 	const { width, height } = entry.contentRect;
-// 	updateSize(width, height);
-// });
+function transformTranslateToLeftTop(transform: string): [number, number] | null {
+	// 匹配 translate 或 translate3d
+	const translateMatch = transform.match(/translate(?:3d)?\(\s*([^)]+)\s*\)/);
 
-// //* 在容器元素存在时，才监听其大小变化
-// if (container.value) {
-// 	resizeObserver.observe(container.value);
-// }
+	if (translateMatch) {
+		const values = translateMatch[1].split(/,\s*/);
+
+		// 获取 translateX 和 translateY 的值
+		const translateX = parseFloat(values[0]);
+		const translateY = parseFloat(values[1]);
+
+		return [translateX, translateY];
+	}
+	return null;
+}
 </script>
 
 <style lang="less" scoped>
 .draggable-resizable {
 	position: absolute;
-	// background-color: #15191c;
-	// border: 1px solid #333;
 	box-sizing: border-box;
 	.header {
 		width: 100%;
