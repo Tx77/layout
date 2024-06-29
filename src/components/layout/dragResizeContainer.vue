@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-29 17:42:40
+ * @LastEditTime: 2024-06-29 18:22:12
  * @Description: 
 -->
 <template>
@@ -76,7 +76,12 @@ const beforeX = ref(0);
 const layoutStorageData = ref();
 //* 默认间隙
 const gap = ref(1);
-
+watch(
+	() => props.screenWidth,
+	(val) => {
+		ghostStep.value = parseFloat((val / 24).toFixed(0));
+	}
+);
 watch(
 	() => props.layoutComponents,
 	(val) => {
@@ -369,7 +374,7 @@ const setGhostComponent = (
 	if (!isGhost.value) {
 		return;
 	}
-	ghostStep.value = parseFloat((props.screenWidth / 24).toFixed(0));
+
 	if (type === GhostType.DRAG) {
 		setComponentsZIndex(currentComponentState.compName);
 		setDragGhostComponent(currentComponentState, transition);
@@ -493,19 +498,20 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	}
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
-	// const nearestComponent = findNearestXComponent(currentComponentState);
-	// if (
-	// 	nearestComponent &&
-	// 	nearestComponent.distance <= step &&
-	// 	//* 幽灵组件也不能和其他组件发生碰撞
-	// 	findOverlappedComponents(Object.assign(currentComponentState, { x: ghostLeft, y: ghostTop })).length === 0
-	// ) {
-	// 	if (nearestComponent.direction === "left") {
-	// 		ghostLeft = nearestComponent.component.x + nearestComponent.component.width + gap.value;
-	// 	} else {
-	// 		ghostLeft = nearestComponent.component.x - currentComponentWidth - gap.value;
-	// 	}
-	// }
+	const nearestComponent = findNearestXComponent(currentComponentState);
+	if (
+		nearestComponent &&
+		nearestComponent.distance <= step &&
+		//* 幽灵组件也不能和其他组件发生碰撞
+		findOverlappedComponents(Object.assign(currentComponentState, { x: ghostLeft, y: ghostTop })).length === 0
+	) {
+		if (nearestComponent.direction === "left") {
+			ghostLeft = nearestComponent.component.x + nearestComponent.component.width + gap.value;
+		} else {
+			ghostLeft = nearestComponent.component.x - currentComponentWidth - gap.value;
+		}
+		reCalcGhostStep(nearestComponent.component.width);
+	}
 
 	const initCurrentComponent = initComponents.value.filter(
 		(item) => item.compName === currentComponentState.compName
@@ -559,6 +565,11 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 
 	resetComponentsY(sourceComponents);
 	return { top: ghostTop, left: ghostLeft };
+};
+
+const reCalcGhostStep = (componentWidth: number) => {
+	const ratio = Math.floor(componentWidth / ghostStep.value);
+	ghostStep.value = Math.floor(componentWidth / ratio);
 };
 
 /**
@@ -634,7 +645,8 @@ const findClosestY = (currentComponentStyle: ComponentState, componentList?: Com
 					currentComponentStyle.x < cur.x + cur.width && currentComponentStyle.x + currentComponentStyle.width > cur.x;
 
 				const curDistance = currentComponentStyle.y - (cur.y + cur.height);
-				if (isOverlappingX && curDistance < closest.distance && curDistance >= 0) {
+				console.log(cur.compName, curDistance, closest.distance);
+				if (isOverlappingX && curDistance < closest.distance && curDistance > 0) {
 					return { y: cur.y + cur.height + gap.value, distance: curDistance, found: true };
 				}
 				return closest;
@@ -774,8 +786,6 @@ const deepClone = <T>(obj: T, hash = new WeakMap()): T => {
 	}
 	return cloneObj;
 };
-
-onMounted(() => {});
 </script>
 <style lang="less" scoped>
 .app {
