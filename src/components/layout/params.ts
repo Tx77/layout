@@ -47,3 +47,4 @@ export enum GhostType {
   DRAG = 'drag',
   RESIZE = 'resize'
 }
+

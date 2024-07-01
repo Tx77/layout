@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-01 10:20:15
+ * @LastEditTime: 2024-07-01 23:06:57
  * @Description: 
 -->
 <template>
@@ -149,12 +149,8 @@ const translateComponentState = (componentState: ComponentState) => {
 	};
 };
 
-const updatePosition = (x: number, y: number, snap = false) => {
-	if (snap) {
-		containerStyle.transition = "0.08s ease-out";
-	} else {
-		containerStyle.transition = "none";
-	}
+const updatePosition = (x: number, y: number) => {
+	containerStyle.transition = "0.08s ease-out";
 	containerStyle.x = x;
 	containerStyle.y = y;
 };
@@ -181,29 +177,28 @@ const onMouseDown = (event: MouseEvent) => {
 	startTop.value = containerStyle.y;
 	emit("setCurrentComponent", containerStyle);
 	emit("setInitX", containerStyle.x);
-	emit("setGhostComponent", true, containerStyle, GhostType.DRAG, "none");
+	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
-		emit("setGhostComponent", true, containerStyle, GhostType.DRAG, "0.1s ease-out");
-		//* 使用 requestAnimationFrame 来优化性能
+		emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
 			const newTop = startTop.value + (moveEvent.clientY - startY.value);
-			updatePosition(newLeft, newTop, false);
+			updatePosition(newLeft, newTop);
 		});
 	};
 
 	const onMouseUp = () => {
-		emit("setGhostComponent", false, containerStyle, GhostType.DRAG, "none");
+		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		requestAnimationFrame(() => {
 			if (props.ghostStyle) {
 				const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
 				if (position) {
 					const [x, y] = position;
-					updatePosition(x, y, true);
+					updatePosition(x, y);
+					emit("drag", props.compName, x, y, true);
 				}
 			}
-			emit("drag", props.compName, containerStyle.x, containerStyle.y, true);
 		});
 		mouseCursor.value = "grab";
 		document.removeEventListener("mousemove", onMouseMove);
@@ -227,41 +222,81 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	containerStyle.zIndex = "2";
 	emit("setCurrentComponent", containerStyle);
 	emit("setInitWidth", startWidth);
-	emit("setGhostComponent", true, containerStyle, GhostType.RESIZE, "none");
+	emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
+
 	let newWidth = startWidth;
 	let newHeight = startHeight;
 	let isResizing = true;
+	let animationFrameId: number;
+
+	// 函数用于更新组件大小
+	const updateSize = (width: number, height: number) => {
+		containerStyle.transition = "none";
+		containerStyle.width = width;
+		containerStyle.height = height;
+
+		// 强制浏览器重绘
+		containerStyle.transform = `translateZ(0)`;
+	};
+
 	const onMouseMove = (moveEvent: MouseEvent) => {
 		if (!isResizing) {
 			return;
 		}
-		if (dir.includes("right")) {
-			newWidth = startWidth + (moveEvent.clientX - startX);
-		} else if (dir.includes("left")) {
-			newWidth = startWidth - (moveEvent.clientX - startX);
-		}
-		if (newWidth < (containerStyle.minWidth as number)) {
-			newWidth = containerStyle.minWidth as number;
-		}
-		if (dir.includes("bottom")) {
-			newHeight = startHeight + (moveEvent.clientY - startY);
-		} else if (dir.includes("top")) {
-			newHeight = startHeight - (moveEvent.clientY - startY);
-		}
-		if (newHeight < (containerStyle.minHeight as number)) {
-			newHeight = containerStyle.minHeight as number;
+
+		// 使用 requestAnimationFrame 来节流
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
 		}
 
-		emit("setGhostComponent", true, containerStyle, GhostType.RESIZE, "0.1s ease-out");
-		updateSize(newWidth, newHeight);
-		requestAnimationFrame(() => {});
+		animationFrameId = requestAnimationFrame(() => {
+			let needsUpdate = false;
+
+			// 计算新的宽度
+			if (dir.includes("right")) {
+				newWidth = startWidth + (moveEvent.clientX - startX);
+				needsUpdate = true;
+			} else if (dir.includes("left")) {
+				newWidth = startWidth - (moveEvent.clientX - startX);
+				needsUpdate = true;
+			}
+
+			// 限制最小宽度
+			if (newWidth < (containerStyle.minWidth as number)) {
+				newWidth = containerStyle.minWidth as number;
+			}
+
+			// 计算新的高度
+			if (dir.includes("bottom")) {
+				newHeight = startHeight + (moveEvent.clientY - startY);
+				needsUpdate = true;
+			} else if (dir.includes("top")) {
+				newHeight = startHeight - (moveEvent.clientY - startY);
+				needsUpdate = true;
+			}
+
+			// 限制最小高度
+			if (newHeight < (containerStyle.minHeight as number)) {
+				newHeight = containerStyle.minHeight as number;
+			}
+
+			// 如果需要更新，执行更新操作
+			if (needsUpdate) {
+				updateSize(newWidth, newHeight);
+				emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
+			}
+		});
 	};
 
 	const onMouseUp = () => {
 		isResizing = false;
 		containerStyle.zIndex = "3";
+
+		// 确保拿到最终的宽度和高度
 		const finalWidth = parseFloat(props.ghostStyle.width);
 		const finalHeight = parseFloat(props.ghostStyle.height);
+
+		// 发送最终的尺寸更新事件
 		if (props.ghostStyle) {
 			emit(
 				"setGhostComponent",
@@ -275,10 +310,17 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			);
 			emit("resize", props.compName, finalWidth, finalHeight, false);
 		}
+
+		// 移除事件监听
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
+
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+		}
 	};
 
+	// 添加事件监听
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 };
