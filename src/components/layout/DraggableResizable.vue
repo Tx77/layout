@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-29 17:03:07
+ * @LastEditTime: 2024-07-01 10:20:15
  * @Description: 
 -->
 <template>
@@ -222,8 +222,8 @@ const onMouseDown = (event: MouseEvent) => {
 const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startX = event.clientX;
 	const startY = event.clientY;
-	const startWidth = containerStyle.width;
-	const startHeight = containerStyle.height;
+	const startWidth = Math.floor(containerStyle.width);
+	const startHeight = Math.floor(containerStyle.height);
 	containerStyle.zIndex = "2";
 	emit("setCurrentComponent", containerStyle);
 	emit("setInitWidth", startWidth);
