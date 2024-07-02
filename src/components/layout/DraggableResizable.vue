@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-01 23:06:57
+ * @LastEditTime: 2024-07-02 11:18:21
  * @Description: 
 -->
 <template>
@@ -155,12 +155,6 @@ const updatePosition = (x: number, y: number) => {
 	containerStyle.y = y;
 };
 
-const updateSize = (width: number, height: number) => {
-	containerStyle.transition = "none";
-	containerStyle.width = width;
-	containerStyle.height = height;
-};
-
 /**
  * 组件drag事件
  * @param event
@@ -178,10 +172,14 @@ const onMouseDown = (event: MouseEvent) => {
 	emit("setCurrentComponent", containerStyle);
 	emit("setInitX", containerStyle.x);
 	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
+	let animationFrameId: number;
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+		}
 		emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
-		requestAnimationFrame(() => {
+		animationFrameId = requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
 			const newTop = startTop.value + (moveEvent.clientY - startY.value);
 			updatePosition(newLeft, newTop);
@@ -190,20 +188,23 @@ const onMouseDown = (event: MouseEvent) => {
 
 	const onMouseUp = () => {
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
-		requestAnimationFrame(() => {
-			if (props.ghostStyle) {
-				const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
-				if (position) {
-					const [x, y] = position;
-					updatePosition(x, y);
-					emit("drag", props.compName, x, y, true);
-				}
+		if (props.ghostStyle) {
+			const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
+			if (position) {
+				const [x, y] = position;
+				updatePosition(x, y);
+				containerStyle.x = x;
+				containerStyle.y = y;
+				emit("drag", props.compName, containerStyle.x, containerStyle.y, true);
 			}
-		});
+		}
+		containerStyle.transition = "none";
 		mouseCursor.value = "grab";
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
-		containerStyle.transition = "none";
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+		}
 	};
 
 	document.addEventListener("mousemove", onMouseMove);

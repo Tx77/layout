@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-01 23:25:17
+ * @LastEditTime: 2024-07-02 18:27:27
  * @Description: 
 -->
 <template>
@@ -311,13 +311,8 @@ const handleResize = (compName: string, width: number, height: number, isStatic:
  * @param currentComponent
  */
 const setCurrentComponent = (currentComponent: ComponentState) => {
-	Object.assign(currentComp, {
-		compName: currentComponent.compName,
-		x: currentComponent.x,
-		y: currentComponent.y,
-		width: currentComponent.width,
-		height: currentComponent.height,
-	});
+	Object.assign(currentComp, currentComponent);
+	ghostY.value = currentComp.y;
 };
 
 const setInitX = (initX: number) => {
@@ -464,10 +459,9 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	const currentComponentY = currentComponentState.y;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
-	ghostY.value = currentComponentY;
+	// ghostY.value = currentComponentY;
 	const step = Math.ceil(ghostStep.value / 2);
 
-	ghostY.value = findClosestY(currentComponentState);
 	const moveGhostX = () => {
 		if (Math.abs(currentComponentX - ghostX.value) > step) {
 			if (currentComponentX - ghostX.value > 0) {
@@ -497,41 +491,61 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 		}
 	}
 
-	const overlappedComponents = findOverlappedComponents(currentComponentState);
+	const ghostCheck = (): ComponentState[] => {
+		const ghostOverlappedComponents = findOverlappedComponents(
+			Object.assign(currentComponentState, { x: ghostX.value, y: ghostY.value })
+		);
+
+		if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
+			return ghostOverlappedComponents;
+		}
+		return [];
+	};
+
+	const overlappedComponents = findOverlappedComponents(
+		Object.assign(currentComponentState, { x: currentComponentX, y: currentComponentY })
+	);
 	if (overlappedComponents && overlappedComponents.length > 0) {
+		const item = overlappedComponents[0];
 		flag.value = false;
-		overlappedComponents.forEach((item) => {
-			const leftOverlapped =
-				currentComponentX + currentComponentWidth >= item.x + step &&
-				currentComponentX + currentComponentWidth < item.x + item.width;
-			const rightOverlapped = currentComponentX > item.x && currentComponentX <= item.x + item.width - step;
-			const topOverlapped = currentComponentY < item.y + item.height - step && currentComponentY > item.y;
-			const list = findBottomMatchingComponents(item);
-			if (leftOverlapped || rightOverlapped) {
-				if (currentComponentY <= item.y + step) {
-					list.concat(item).forEach((comp) => {
-						comp.y += currentComponentHeight;
-						comp.moved = true;
-					});
-				} else {
-					ghostY.value = item.y + item.height + gap.value;
-					list.forEach((comp) => {
+		const moveStep = 20;
+		//* 当前组件height大于碰撞组件height
+		const case1 =
+			currentComponentHeight > item.height &&
+			currentComponentY + currentComponentHeight > item.height + item.y &&
+			ghostY.value <= item.y;
+		//* 当前组件height小于碰撞组件height
+		const case2 =
+			currentComponentHeight <= item.height && currentComponentY >= item.y + moveStep && ghostY.value <= item.y;
+		if (currentComponentY > item.y + moveStep || case1 || case2) {
+			ghostY.value = item.y + item.height;
+		} else {
+			console.log("===");
+			ghostY.value = findClosestY(currentComponentState);
+		}
+		const ghostOverlappedComponents = ghostCheck();
+		if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
+			ghostOverlappedComponents.forEach((ghostItem) => {
+				if (ghostY.value <= ghostItem.y) {
+					let ghostBelowComponents = findBottomMatchingComponents(ghostItem);
+					ghostBelowComponents.unshift(ghostItem);
+					ghostBelowComponents.forEach((comp) => {
 						comp.y += currentComponentHeight;
 						comp.moved = true;
 					});
 				}
-				flag.value = true;
-			}
-		});
+			});
+		}
 	} else {
 		flag.value = true;
+		ghostY.value = findClosestY(currentComponentState);
 	}
 
 	moveGhostX();
 
 	const sourceComponents = components.value.map((item) => {
 		if (item.compName === currentComponentState.compName) {
-			Object.assign(item, { x: ghostX, y: ghostY.value });
+			Object.assign(item, { x: ghostX.value, y: ghostY.value });
 		}
 		return item;
 	});
@@ -541,7 +555,6 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	if (flag.value) {
 		resetComponentsY(sourceComponents);
 	}
-	console.log("ghostY", ghostY.value);
 	return { top: ghostY.value, left: ghostX.value };
 };
 
@@ -610,8 +623,6 @@ const findClosestY = (currentComponentState: ComponentState, componentList?: Com
 				if (isOverlappingX && curDistance < closest.distance && curDistance >= 0) {
 					return { y: cur.y + cur.height + gap.value, distance: curDistance, found: true };
 				}
-				console.log(closest);
-				console.log(currentComponentState.compName, cur.compName, isOverlappingX, curDistance, closest.distance);
 				return closest;
 			},
 			{ y: initY, distance: Infinity, found: false }
@@ -668,11 +679,11 @@ const calcResizeGhost = (
 				if (ghostWidth.value + ghostStep.value >= props.screenWidth) {
 					ghostWidth.value = props.screenWidth;
 				} else {
-					ghostWidth.value += ghostStep.value + gap.value;
+					ghostWidth.value += ghostStep.value;
 				}
 			} else {
 				if (ghostWidth.value - ghostStep.value >= currentComponentState.minWidth!) {
-					ghostWidth.value -= ghostStep.value + gap.value;
+					ghostWidth.value -= ghostStep.value;
 				} else {
 					ghostWidth.value = currentComponentState.minWidth!;
 				}
@@ -699,7 +710,7 @@ const calcResizeGhost = (
 
 	const sourceComponents = components.value.map((item) => {
 		if (item.compName === currentComponentState.compName) {
-			Object.assign(item, { width: ghostWidth, height: currentComponentHeight });
+			Object.assign(item, { width: ghostWidth.value, height: currentComponentHeight });
 		}
 		return item;
 	});
