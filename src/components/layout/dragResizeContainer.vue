@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-02 18:27:27
+ * @LastEditTime: 2024-07-02 21:15:09
  * @Description: 
 -->
 <template>
@@ -114,7 +114,7 @@ watch(
 		}
 		ghostStep.value = 106;
 		closestYStep.value = clacClosestYStep();
-		components.value = applyGapAndRePosition(localComponents);
+		components.value = localComponents;
 
 		initComponents.value = deepClone(localComponents);
 	}
@@ -171,11 +171,11 @@ const applyGapAndRePosition = (components: ComponentState[]): ComponentState[] =
 		let newComponent = { ...component };
 
 		if (xAxisAdjustments.has(index)) {
-			newComponent.x += gap.value;
+			newComponent.x = lastX + lastWidth + gap.value;
 		}
 
 		if (yAxisAdjustments.has(index)) {
-			newComponent.y += gap.value;
+			newComponent.y = lastY + lastHeight + gap.value;
 		}
 
 		//* 更新 lastX, lastY, lastWidth, lastHeight，累加上一次的结果
@@ -194,7 +194,7 @@ const applyGapAndRePosition = (components: ComponentState[]): ComponentState[] =
  */
 const translateToPxNumber = (val: string): number => {
 	if (val.indexOf("%") > -1) {
-		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(0));
+		return Math.floor(props.screenWidth * (parseFloat(val) / 100));
 	}
 	return parseFloat(val);
 };
@@ -368,20 +368,20 @@ const setGhostComponent = (isShow: boolean, currentComponentState: ComponentStat
  */
 const setDragGhostComponent = (currentComponentState: ComponentState) => {
 	if (isGhost.value && currentComponentState) {
+		requestAnimationFrame(() => {
+			const { top, left } = calcDragGhost(currentComponentState);
+			ghostStyle.value = {
+				width: currentComponentState.width.toFixed(0) + "px",
+				height: currentComponentState.height + "px",
+				zIndex: "1",
+				backgroundColor: "rgba(81, 37, 43, 1)",
+				position: "absolute",
+				transition: "0.08s ease",
+				cursor: "auto",
+				transform: `translate(${left.toFixed(0)}px, ${top}px)`,
+			};
+		});
 		if (currentComponentState.x >= 0 && currentComponentState.x + currentComponentState.width <= props.screenWidth) {
-			requestAnimationFrame(() => {
-				const { top, left } = calcDragGhost(currentComponentState);
-				ghostStyle.value = {
-					width: currentComponentState.width.toFixed(0) + "px",
-					height: currentComponentState.height + "px",
-					zIndex: "1",
-					backgroundColor: "rgba(81, 37, 43, 1)",
-					position: "absolute",
-					transition: "0.08s ease",
-					cursor: "auto",
-					transform: `translate(${left.toFixed(0)}px, ${top}px)`,
-				};
-			});
 		}
 	}
 };
@@ -455,11 +455,13 @@ const ghostX = ref(0);
 const ghostY = ref(0);
 const flag = ref(true);
 const calcDragGhost = (currentComponentState: ComponentState): { top: number; left: number } => {
-	const currentComponentX = currentComponentState.x;
-	const currentComponentY = currentComponentState.y;
+	let currentComponentX = currentComponentState.x;
+	let currentComponentY = currentComponentState.y;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
-	// ghostY.value = currentComponentY;
+	if (currentComponentState.x < 0) {
+		currentComponentX = 0;
+	}
 	const step = Math.ceil(ghostStep.value / 2);
 
 	const moveGhostX = () => {
@@ -480,9 +482,9 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	const nearestComponent = findNearestXComponent(currentComponentState);
 	if (
 		nearestComponent &&
-		nearestComponent.distance <= step &&
+		nearestComponent.distance <= step
 		//* 幽灵组件也不能和其他组件发生碰撞
-		findOverlappedComponents(Object.assign(currentComponentState, { x: ghostX.value, y: ghostY.value })).length === 0
+		// findOverlappedComponents(Object.assign(currentComponentState, { x: ghostX.value, y: ghostY.value })).length === 0
 	) {
 		if (nearestComponent.direction === "left") {
 			ghostX.value = nearestComponent.component.x + nearestComponent.component.width + gap.value;
@@ -689,6 +691,39 @@ const calcResizeGhost = (
 				}
 			}
 		} else {
+			if (ghostWidth.value - step <= currentComponentState.minWidth!) {
+				ghostWidth.value = currentComponentState.minWidth!;
+			}
+		}
+	}
+
+	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
+	const nearestComponent = findNearestXComponent(
+		Object.assign(currentComponentState, {
+			width: ghostWidth.value,
+			height: currentComponentHeight,
+		})
+	);
+	//* 最近组件必须在当前组件右边
+	if (
+		nearestComponent &&
+		ghostX + currentComponentWidth <= nearestComponent.component.x &&
+		nearestComponent.component.x - (ghostX + currentComponentWidth) <= step
+	) {
+		ghostWidth.value = nearestComponent.component.x - ghostX - gap.value;
+		// console.log("nearest");
+	}
+
+	const nearestXAxisComponent = findNearestXAxisComponent(currentComponentState);
+	if (nearestXAxisComponent) {
+		const currentSumWidth = currentComponentWidth + currentComponentX;
+		const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
+		if (Math.abs(nearestXSumWidth - currentSumWidth) < step && nearestXAxisComponent.x > 0) {
+			if (nearestXSumWidth - currentSumWidth > 0) {
+				ghostWidth.value = nearestXSumWidth;
+			} else {
+				ghostWidth.value = nearestXAxisComponent.x;
+			}
 		}
 	}
 
