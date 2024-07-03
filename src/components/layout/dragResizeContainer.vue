@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-02 21:15:09
+ * @LastEditTime: 2024-07-03 20:23:14
  * @Description: 
 -->
 <template>
@@ -15,6 +15,7 @@
 			:ghostStyle="ghostStyle"
 			:directions="['bottom-right']"
 			:screenWidth="screenWidth"
+			:comp="componentInstance[comp.compName]"
 			@drag="handleDrag"
 			@resize="handleResize"
 			@setInitWidth="setInitWidth"
@@ -22,7 +23,8 @@
 			@setInitX="setInitX"
 			@setGhostComponent="setGhostComponent"
 			@setResizeGhostComponent="setResizeGhostComponent"
-		/>
+		>
+		</DraggableResizable>
 		<div class="ghost" v-if="isGhost" :style="ghostStyle"></div>
 	</div>
 </template>
@@ -49,6 +51,10 @@ const props = defineProps({
 	},
 	layoutResizer: {
 		type: Object as PropType<LayoutResizer>,
+		default: () => {},
+	},
+	componentInstance: {
+		type: Object,
 		default: () => {},
 	},
 });
@@ -95,6 +101,7 @@ watch(
 				isGap: false,
 			};
 		});
+
 		const storageComponents = loadState();
 		if (storageComponents && storageComponents.length > 0) {
 			for (let i = 0; i < localComponents.length; i++) {
@@ -115,7 +122,6 @@ watch(
 		ghostStep.value = 106;
 		closestYStep.value = clacClosestYStep();
 		components.value = localComponents;
-
 		initComponents.value = deepClone(localComponents);
 	}
 );
@@ -368,21 +374,17 @@ const setGhostComponent = (isShow: boolean, currentComponentState: ComponentStat
  */
 const setDragGhostComponent = (currentComponentState: ComponentState) => {
 	if (isGhost.value && currentComponentState) {
-		requestAnimationFrame(() => {
-			const { top, left } = calcDragGhost(currentComponentState);
-			ghostStyle.value = {
-				width: currentComponentState.width.toFixed(0) + "px",
-				height: currentComponentState.height + "px",
-				zIndex: "1",
-				backgroundColor: "rgba(81, 37, 43, 1)",
-				position: "absolute",
-				transition: "0.08s ease",
-				cursor: "auto",
-				transform: `translate(${left.toFixed(0)}px, ${top}px)`,
-			};
-		});
-		if (currentComponentState.x >= 0 && currentComponentState.x + currentComponentState.width <= props.screenWidth) {
-		}
+		const { top, left } = calcDragGhost(currentComponentState);
+		ghostStyle.value = {
+			width: currentComponentState.width.toFixed(0) + "px",
+			height: currentComponentState.height + "px",
+			zIndex: "1",
+			backgroundColor: "rgba(81, 37, 43, 1)",
+			position: "absolute",
+			transition: "0.08s ease",
+			cursor: "auto",
+			transform: `translate(${left.toFixed(0)}px, ${top}px)`,
+		};
 	}
 };
 
@@ -494,9 +496,13 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	}
 
 	const ghostCheck = (): ComponentState[] => {
-		const ghostOverlappedComponents = findOverlappedComponents(
-			Object.assign(currentComponentState, { x: ghostX.value, y: ghostY.value })
-		);
+		const ghostOverlappedComponents = findOverlappedComponents({
+			x: ghostX.value,
+			y: ghostY.value,
+			width: currentComponentWidth,
+			height: currentComponentHeight,
+			compName: currentComponentState.compName,
+		});
 
 		if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
 			return ghostOverlappedComponents;
@@ -504,11 +510,9 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 		return [];
 	};
 
-	const overlappedComponents = findOverlappedComponents(
-		Object.assign(currentComponentState, { x: currentComponentX, y: currentComponentY })
-	);
+	const overlappedComponents = findOverlappedComponents(currentComponentState);
 	if (overlappedComponents && overlappedComponents.length > 0) {
-		const item = overlappedComponents[0];
+		const item = overlappedComponents[overlappedComponents.length - 1];
 		flag.value = false;
 		const moveStep = 20;
 		//* 当前组件height大于碰撞组件height
@@ -519,10 +523,13 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 		//* 当前组件height小于碰撞组件height
 		const case2 =
 			currentComponentHeight <= item.height && currentComponentY >= item.y + moveStep && ghostY.value <= item.y;
-		if (currentComponentY > item.y + moveStep || case1 || case2) {
+		const leftOverlapped =
+			currentComponentX + currentComponentWidth >= item.x + step &&
+			currentComponentX + currentComponentWidth < item.x + item.width;
+		const rightOverlapped = currentComponentX > item.x && currentComponentX <= item.x + item.width - step;
+		if (currentComponentY > item.y + moveStep || ((case1 || case2) && (leftOverlapped || rightOverlapped))) {
 			ghostY.value = item.y + item.height;
 		} else {
-			console.log("===");
 			ghostY.value = findClosestY(currentComponentState);
 		}
 		const ghostOverlappedComponents = ghostCheck();
@@ -538,8 +545,8 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 				}
 			});
 		}
-	} else {
 		flag.value = true;
+	} else {
 		ghostY.value = findClosestY(currentComponentState);
 	}
 

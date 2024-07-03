@@ -1,9 +1,15 @@
 <script setup lang="ts" name="Layout">
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import { LayoutStrategy } from "./layout";
 import LayoutResizer from "./LayoutResizer";
 import { contractTradeLayout } from "./contractTrade";
 import DragResizeContainer from "./dragResizeContainer.vue";
+import Header from "./Header.vue";
+import { markRaw } from "vue";
+import ExchangeChart from "./ExchangeChart.vue";
+import ExchangeList from "./ExchangeList.vue";
+import ExchangeInfo from "./ExchangeInfo.vue";
+import UserExchangeTable from "./UserExchangeTable.vue";
 
 const layoutStrategy = ref(LayoutStrategy.PRO_RIGHT);
 const layoutResizer = new LayoutResizer("#app", layoutStrategy.value, contractTradeLayout);
@@ -15,6 +21,14 @@ const screenWidth = ref(layoutResizer.screenWidth);
 const switchLayout = (strategy: LayoutStrategy) => {
 	layoutResizer.currentLayoutStrategy.value = strategy;
 };
+
+const componentInstance = reactive({
+	Header: markRaw(Header),
+	ExchangeChart: markRaw(ExchangeChart),
+	ExchangeList: markRaw(ExchangeList),
+	ExchangeInfo: markRaw(ExchangeInfo),
+	UserExchangeTable: markRaw(UserExchangeTable),
+});
 </script>
 
 <template>
@@ -24,6 +38,7 @@ const switchLayout = (strategy: LayoutStrategy) => {
 			:screenWidth="screenWidth"
 			:layoutStrategy="layoutStrategy"
 			:layoutResizer="layoutResizer"
+			:componentInstance="componentInstance"
 		/>
 		<div>
 			<!-- <p>

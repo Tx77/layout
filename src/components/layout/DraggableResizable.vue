@@ -2,14 +2,14 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-02 11:18:21
+ * @LastEditTime: 2024-07-03 20:04:20
  * @Description: 
 -->
 <template>
 	<div :id="props.compName" ref="container" class="draggable-resizable" :style="computedContainerStyle">
 		<component
 			v-if="props.componentState.show"
-			:is="importComponent"
+			:is="props.comp"
 			:compName="props.compName"
 			:width="computedContainerStyle.width"
 			:left="computedContainerStyle.left"
@@ -27,8 +27,9 @@
 
 <script setup lang="ts" name="DraggableResizable">
 import type { PropType } from "vue";
-import { ref, reactive, defineEmits, watch, computed, defineAsyncComponent } from "vue";
+import { ref, reactive, defineEmits, watch, computed } from "vue";
 import { ComponentState, GhostStyle, GhostType } from "./params";
+import { DefineComponent } from "vue";
 
 const props = defineProps({
 	componentState: {
@@ -51,6 +52,10 @@ const props = defineProps({
 	screenWidth: {
 		type: Number,
 		default: 0,
+	},
+	comp: {
+		type: Object as PropType<DefineComponent>,
+		default: () => {},
 	},
 });
 
@@ -92,12 +97,6 @@ const containerStyle = reactive<ComponentState>({
 	y: props.componentState.y,
 	zIndex: props.componentState.zIndex,
 	transition: props.componentState.transition,
-});
-
-const importComponent = computed(() => {
-	return defineAsyncComponent(() => {
-		return import(`./${props.compName}.vue`);
-	});
 });
 
 const computedContainerStyle = computed(() => {
@@ -149,12 +148,6 @@ const translateComponentState = (componentState: ComponentState) => {
 	};
 };
 
-const updatePosition = (x: number, y: number) => {
-	containerStyle.transition = "0.08s ease-out";
-	containerStyle.x = x;
-	containerStyle.y = y;
-};
-
 /**
  * 组件drag事件
  * @param event
@@ -174,15 +167,22 @@ const onMouseDown = (event: MouseEvent) => {
 	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 	let animationFrameId: number;
 
+	const updatePosition = (x: number, y: number, transition: string) => {
+		containerStyle.transition = transition;
+		containerStyle.x = x;
+		containerStyle.y = y;
+	};
+
 	const onMouseMove = (moveEvent: MouseEvent) => {
 		if (animationFrameId) {
 			cancelAnimationFrame(animationFrameId);
 		}
-		emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
+
 		animationFrameId = requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
 			const newTop = startTop.value + (moveEvent.clientY - startY.value);
-			updatePosition(newLeft, newTop);
+			updatePosition(newLeft, newTop, "none");
+			emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 		});
 	};
 
@@ -192,10 +192,8 @@ const onMouseDown = (event: MouseEvent) => {
 			const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
 			if (position) {
 				const [x, y] = position;
-				updatePosition(x, y);
-				containerStyle.x = x;
-				containerStyle.y = y;
-				emit("drag", props.compName, containerStyle.x, containerStyle.y, true);
+				updatePosition(x, y, "0.02s ease");
+				emit("drag", props.compName, x, y, true);
 			}
 		}
 		containerStyle.transition = "none";
@@ -210,6 +208,7 @@ const onMouseDown = (event: MouseEvent) => {
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 };
+
 /**
  * 组件resize事件
  * @param dir

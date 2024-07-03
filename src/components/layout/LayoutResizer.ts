@@ -2,14 +2,13 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-02 20:30:14
+ * @LastEditTime: 2024-07-03 16:32:14
  * @Description:
  */
 
-import { defineComponent, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import {
   LayoutStrategy,
-  type ComponentStyle,
   type ComponentWidthRange,
   type Resolution,
   type Coordinate,
@@ -34,9 +33,6 @@ export default class LayoutResizer {
     layoutStrategy: LayoutStrategy,
     private screenResolutionMap: ScreenResolutionMap[]
   ) {
-    if (localStorage.getItem(layoutStrategy)) {
-      this.currentScreenResolutionMap = JSON.parse(localStorage.getItem(layoutStrategy));
-    }
     this.currentLayoutStrategy.value = layoutStrategy;
 
     onMounted(() => {
