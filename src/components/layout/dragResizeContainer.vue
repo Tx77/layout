@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-03 20:23:14
+ * @LastEditTime: 2024-07-04 11:23:53
  * @Description: 
 -->
 <template>
@@ -79,7 +79,7 @@ const ghostStyle = ref<GhostStyle>();
 //* 布局缓存数据
 const layoutStorageData = ref();
 //* 默认间隙
-const gap = ref(1);
+const gap = ref(2);
 watch(
 	() => props.layoutComponents,
 	(val) => {
@@ -119,7 +119,7 @@ watch(
 				}
 			}
 		}
-		ghostStep.value = 106;
+		ghostStep.value = 133;
 		closestYStep.value = clacClosestYStep();
 		components.value = localComponents;
 		initComponents.value = deepClone(localComponents);
@@ -200,7 +200,7 @@ const applyGapAndRePosition = (components: ComponentState[]): ComponentState[] =
  */
 const translateToPxNumber = (val: string): number => {
 	if (val.indexOf("%") > -1) {
-		return Math.floor(props.screenWidth * (parseFloat(val) / 100));
+		return Math.round(props.screenWidth * (parseFloat(val) / 100));
 	}
 	return parseFloat(val);
 };
@@ -528,7 +528,7 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 			currentComponentX + currentComponentWidth < item.x + item.width;
 		const rightOverlapped = currentComponentX > item.x && currentComponentX <= item.x + item.width - step;
 		if (currentComponentY > item.y + moveStep || ((case1 || case2) && (leftOverlapped || rightOverlapped))) {
-			ghostY.value = item.y + item.height;
+			ghostY.value = item.y + item.height + gap.value;
 		} else {
 			ghostY.value = findClosestY(currentComponentState);
 		}

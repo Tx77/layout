@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-06-26 17:15:42
+ * @LastEditTime: 2024-07-04 10:35:43
  * @Description:
  */
 
@@ -51,8 +51,8 @@ export type Coordinate = number | [number, number];
 
 export type ComponentWidthRange = {
   width: [number, number];
-  minWidth: number;
-  minHeight: number;
+  minWidth?: number;
+  minHeight?: number;
   height: number;
   compName: string;
   background?: string;

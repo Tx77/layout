@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-03 16:32:14
+ * @LastEditTime: 2024-07-04 11:26:53
  * @Description:
  */
 
@@ -167,7 +167,7 @@ export default class LayoutResizer {
           top: `${item.y}px`,
           width: `${compPosition.width}%`,
           height: `${item.height}px`,
-          transition: "all 0.2s ease-out",
+          transition: "all 0.15s ease-out",
           overflow: 'hidden',
           zIndex: item.zIndex,
           minWidth: `${item.minWidth}px`,
