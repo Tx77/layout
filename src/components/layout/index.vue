@@ -41,7 +41,7 @@ const componentInstance = reactive({
 			:componentInstance="componentInstance"
 		/>
 		<div>
-			<!-- <div class="footer">{{ screenWidth }}px</div> -->
+			<div class="footer">{{ screenWidth }}px</div>
 			<!-- <p>
 				screenWidth: {{ screenWidth }}px
 				<button @click="switchLayout(LayoutStrategy.PRO_RIGHT)">专业版 - 右</button>
@@ -64,7 +64,11 @@ p {
 }
 
 .footer {
-	position: absolute;
+	width: 100%;
+	height: 30px;
+	position: fixed;
 	bottom: 0;
+	background-color: #15191c;
+	z-index: 10;
 }
 </style>

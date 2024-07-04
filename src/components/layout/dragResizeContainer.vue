@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-04 11:23:53
+ * @LastEditTime: 2024-07-04 14:38:19
  * @Description: 
 -->
 <template>
@@ -60,7 +60,6 @@ const props = defineProps({
 });
 
 const components = ref<ComponentState[]>([]);
-const initComponents = ref<ComponentState[]>([]);
 const currentComp = reactive<ComponentState>({
 	compName: "",
 	x: 0,
@@ -72,7 +71,6 @@ const currentComp = reactive<ComponentState>({
 });
 //* 幽灵组件x轴移动的阈值
 const ghostStep = ref(0);
-const closestYStep = ref(0);
 const isGhost = ref(false);
 //* 幽灵组件样式
 const ghostStyle = ref<GhostStyle>();
@@ -120,106 +118,36 @@ watch(
 			}
 		}
 		ghostStep.value = 133;
-		closestYStep.value = clacClosestYStep();
 		components.value = localComponents;
-		initComponents.value = deepClone(localComponents);
 	}
 );
-
-const clacClosestYStep = () => {
-	return parseFloat((props.screenWidth / 50).toFixed(0));
-};
-
-/**
- * 初始化给所有x,y非0的组件的x,y增加gap
- * @param components
- */
-const applyGapAndRePosition = (components: ComponentState[]): ComponentState[] => {
-	const xAxisAdjustments = new Set<number>();
-	const yAxisAdjustments = new Set<number>();
-
-	//* 递归函数处理 x 轴相邻的所有组件
-	function adjustXAxis(index: number, currentX: number) {
-		components.forEach((other, i) => {
-			if (i !== index && other.x === currentX) {
-				xAxisAdjustments.add(i);
-				adjustXAxis(i, other.x + other.width);
-			}
-		});
-	}
-
-	//* 递归函数处理 y 轴相邻的所有组件
-	function adjustYAxis(index: number, currentY: number) {
-		components.forEach((other, i) => {
-			if (i !== index && other.y === currentY) {
-				yAxisAdjustments.add(i);
-				adjustYAxis(i, other.y + other.height);
-			}
-		});
-	}
-
-	components.forEach((component, index) => {
-		if (component.x === 0) {
-			adjustXAxis(index, component.x + component.width);
-		}
-
-		if (component.y === 0) {
-			adjustYAxis(index, component.y + component.height);
-		}
-	});
-
-	let lastX = 0;
-	let lastY = 0;
-	let lastWidth = 0;
-	let lastHeight = 0;
-
-	return components.reduce((acc, component, index) => {
-		let newComponent = { ...component };
-
-		if (xAxisAdjustments.has(index)) {
-			newComponent.x = lastX + lastWidth + gap.value;
-		}
-
-		if (yAxisAdjustments.has(index)) {
-			newComponent.y = lastY + lastHeight + gap.value;
-		}
-
-		//* 更新 lastX, lastY, lastWidth, lastHeight，累加上一次的结果
-		lastX = newComponent.x;
-		lastY = newComponent.y;
-		lastWidth = newComponent.width;
-		lastHeight = newComponent.height;
-		acc.push(newComponent);
-		return acc;
-	}, [] as ComponentState[]);
-};
 
 /**
  * 转化为数字类型的像素
  * @param val
  */
-const translateToPxNumber = (val: string): number => {
+function translateToPxNumber(val: string): number {
 	if (val.indexOf("%") > -1) {
 		return Math.round(props.screenWidth * (parseFloat(val) / 100));
 	}
 	return parseFloat(val);
-};
+}
 
 /**
  * 转化为百分比
  * @param val
  */
-const translateToPercent = (val: number): number => {
+function translateToPercent(val: number): number {
 	if (Number.isNaN(val)) {
 		return val;
 	}
 	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
-};
+}
 
 /**
  * 加载缓存布局
  */
-const loadState = () => {
+function loadState() {
 	let data = [];
 	layoutStorageData.value = localStorage.getItem(props.layoutStrategy);
 	if (!layoutStorageData.value) {
@@ -233,12 +161,12 @@ const loadState = () => {
 		}
 	}
 	return data;
-};
+}
 
 /**
  * 缓存布局
  */
-const saveState = () => {
+function saveState() {
 	for (const resolutionRange in layoutStorageData.value) {
 		const [minWidth, maxWidth] = JSON.parse(resolutionRange.replace("[", "[").replace("]", "]"));
 		if (props.screenWidth >= minWidth && props.screenWidth <= maxWidth) {
@@ -255,13 +183,13 @@ const saveState = () => {
 		}
 	}
 	localStorage.setItem(props.layoutStrategy, JSON.stringify(layoutStorageData.value));
-};
+}
 
 /**
  * 格式化缓存数据
  * @param comp
  */
-const formatStorageComponent = (comp: ComponentState) => {
+function formatStorageComponent(comp: ComponentState) {
 	return {
 		compName: comp.compName,
 		width: translateToPercent(comp.width) + "%",
@@ -276,7 +204,7 @@ const formatStorageComponent = (comp: ComponentState) => {
 		static: comp.static,
 		show: comp.show,
 	};
-};
+}
 
 /**
  * 处理拖拽事件
@@ -285,7 +213,7 @@ const formatStorageComponent = (comp: ComponentState) => {
  * @param y
  * @param moved
  */
-const handleDrag = (compName: string, x: number, y: number, moved: boolean) => {
+function handleDrag(compName: string, x: number, y: number, moved: boolean) {
 	const component = components.value.find((c) => c.compName === compName);
 	if (component) {
 		component.x = x;
@@ -293,7 +221,7 @@ const handleDrag = (compName: string, x: number, y: number, moved: boolean) => {
 		component.moved = moved;
 		saveState();
 	}
-};
+}
 
 /**
  * 处理resize事件
@@ -302,7 +230,7 @@ const handleDrag = (compName: string, x: number, y: number, moved: boolean) => {
  * @param height
  * @param isStatic
  */
-const handleResize = (compName: string, width: number, height: number, isStatic: boolean) => {
+function handleResize(compName: string, width: number, height: number, isStatic: boolean) {
 	const component = components.value.find((c) => c.compName === compName);
 	if (component) {
 		component.width = width;
@@ -310,16 +238,16 @@ const handleResize = (compName: string, width: number, height: number, isStatic:
 		component.static = isStatic;
 		saveState();
 	}
-};
+}
 
 /**
  * 设置当前组件全局变量
  * @param currentComponent
  */
-const setCurrentComponent = (currentComponent: ComponentState) => {
+function setCurrentComponent(currentComponent: ComponentState) {
 	Object.assign(currentComp, currentComponent);
 	ghostY.value = currentComp.y;
-};
+}
 
 const setInitX = (initX: number) => {
 	ghostX.value = initX;
@@ -329,15 +257,15 @@ const setInitX = (initX: number) => {
  * 配置幽灵组件初始宽度
  * @param initGhostWidth
  */
-const setInitWidth = (initGhostWidth: number) => {
+function setInitWidth(initGhostWidth: number) {
 	ghostWidth.value = initGhostWidth;
-};
+}
 
 /**
  * 设置组件zIndex
  * @param currentCompId
  */
-const setComponentsZIndex = (currentCompId: string) => {
+function setComponentsZIndex(currentCompId: string) {
 	components.value = components.value.map((item) => {
 		if (item.compName === currentCompId) {
 			item.zIndex = "4";
@@ -346,14 +274,14 @@ const setComponentsZIndex = (currentCompId: string) => {
 		}
 		return item;
 	});
-};
+}
 
 /**
  * 配置幽灵组件
  * @param isShow
  * @param currentComponentState
  */
-const setGhostComponent = (isShow: boolean, currentComponentState: ComponentState, type: GhostType) => {
+function setGhostComponent(isShow: boolean, currentComponentState: ComponentState, type: GhostType) {
 	isGhost.value = isShow;
 	if (!isGhost.value) {
 		return;
@@ -366,13 +294,13 @@ const setGhostComponent = (isShow: boolean, currentComponentState: ComponentStat
 	if (type === GhostType.RESIZE) {
 		setResizeGhostComponent(currentComponentState);
 	}
-};
+}
 
 /**
  * 配置drag幽灵组件
  * @param currentComponentState
  */
-const setDragGhostComponent = (currentComponentState: ComponentState) => {
+function setDragGhostComponent(currentComponentState: ComponentState) {
 	if (isGhost.value && currentComponentState) {
 		const { top, left } = calcDragGhost(currentComponentState);
 		ghostStyle.value = {
@@ -386,13 +314,13 @@ const setDragGhostComponent = (currentComponentState: ComponentState) => {
 			transform: `translate(${left.toFixed(0)}px, ${top}px)`,
 		};
 	}
-};
+}
 
 /**
  * 配置resize幽灵组件
  * @param currentComponentState
  */
-const setResizeGhostComponent = (currentComponentState: ComponentState) => {
+function setResizeGhostComponent(currentComponentState: ComponentState) {
 	if (isGhost.value && currentComponentState) {
 		const { top, left, width, height } = calcResizeGhost(currentComponentState);
 		ghostStyle.value = {
@@ -405,13 +333,13 @@ const setResizeGhostComponent = (currentComponentState: ComponentState) => {
 			transform: `translate(${left.toFixed(0)}px, ${top}px)`,
 		};
 	}
-};
+}
 
 /**
  * 重置组件y轴定位
  * @param list
  */
-const resetComponentsY = (list?: ComponentState[]) => {
+function resetComponentsY(list?: ComponentState[]) {
 	let sourceComponents: ComponentState[] = [];
 	if (list && list.length > 0) {
 		sourceComponents = list;
@@ -421,7 +349,7 @@ const resetComponentsY = (list?: ComponentState[]) => {
 	sourceComponents.forEach((item) => {
 		item.y = findClosestY(item);
 	});
-};
+}
 
 /**
  * 找到距离当前组件X轴最近的组件
@@ -456,7 +384,7 @@ function findNearestXComponent(currentComponent: ComponentState): DistanceResult
 const ghostX = ref(0);
 const ghostY = ref(0);
 const flag = ref(true);
-const calcDragGhost = (currentComponentState: ComponentState): { top: number; left: number } => {
+function calcDragGhost(currentComponentState: ComponentState): { top: number; left: number } {
 	let currentComponentX = currentComponentState.x;
 	let currentComponentY = currentComponentState.y;
 	const currentComponentWidth = currentComponentState.width;
@@ -464,12 +392,19 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	if (currentComponentState.x < 0) {
 		currentComponentX = 0;
 	}
+	if (currentComponentState.x + currentComponentWidth > props.screenWidth) {
+		currentComponentState.x = props.screenWidth - currentComponentWidth;
+	}
 	const step = Math.ceil(ghostStep.value / 2);
 
 	const moveGhostX = () => {
 		if (Math.abs(currentComponentX - ghostX.value) > step) {
 			if (currentComponentX - ghostX.value > 0) {
-				ghostX.value += ghostStep.value;
+				if (currentComponentWidth + ghostX.value + ghostStep.value >= props.screenWidth) {
+					ghostX.value = props.screenWidth - currentComponentWidth;
+				} else {
+					ghostX.value += ghostStep.value;
+				}
 			} else {
 				if (ghostX.value - ghostStep.value <= 0) {
 					ghostX.value = 0;
@@ -513,13 +448,21 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 	if (overlappedComponents && overlappedComponents.length > 0) {
 		const item = overlappedComponents[overlappedComponents.length - 1];
+		// console.log(item);
 		flag.value = false;
-		const moveStep = 20;
-		//* 当前组件height大于碰撞组件height
-		const case1 =
-			currentComponentHeight > item.height &&
-			currentComponentY + currentComponentHeight > item.height + item.y &&
-			ghostY.value <= item.y;
+		const moveStep = 10;
+		const topMatchingComponents = findTopMatchingComponents(item);
+		let case1 = false;
+		if (topMatchingComponents.length === 0) {
+			//* 当前组件height大于碰撞组件height
+			case1 =
+				currentComponentHeight > item.height &&
+				currentComponentY + currentComponentHeight > item.height + item.y &&
+				ghostY.value <= item.y;
+		} else {
+			//* 碰撞组件上方有紧挨着的另一个组件需要单独判断
+			case1 = currentComponentHeight > item.height && currentComponentY > item.y + moveStep && ghostY.value <= item.y;
+		}
 		//* 当前组件height小于碰撞组件height
 		const case2 =
 			currentComponentHeight <= item.height && currentComponentY >= item.y + moveStep && ghostY.value <= item.y;
@@ -527,9 +470,10 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 			currentComponentX + currentComponentWidth >= item.x + step &&
 			currentComponentX + currentComponentWidth < item.x + item.width;
 		const rightOverlapped = currentComponentX > item.x && currentComponentX <= item.x + item.width - step;
-		if (currentComponentY > item.y + moveStep || ((case1 || case2) && (leftOverlapped || rightOverlapped))) {
+		if ((currentComponentY > item.y + moveStep || case1 || case2) && (leftOverlapped || rightOverlapped)) {
 			ghostY.value = item.y + item.height + gap.value;
 		} else {
+			// console.log("====");
 			ghostY.value = findClosestY(currentComponentState);
 		}
 		const ghostOverlappedComponents = ghostCheck();
@@ -565,13 +509,13 @@ const calcDragGhost = (currentComponentState: ComponentState): { top: number; le
 		resetComponentsY(sourceComponents);
 	}
 	return { top: ghostY.value, left: ghostX.value };
-};
+}
 
 /**
  * 找到满足y大于传入组件y的组件
  * @param component
  */
-const findBottomMatchingComponents = (component: ComponentState): ComponentState[] => {
+function findBottomMatchingComponents(component: ComponentState): ComponentState[] {
 	return components.value.filter(
 		(item) =>
 			item.y >= component.y + component.height &&
@@ -579,7 +523,23 @@ const findBottomMatchingComponents = (component: ComponentState): ComponentState
 			((item.x >= component.x && item.x <= component.x + component.width) ||
 				(item.x <= component.x && item.x + item.width >= component.x + component.width))
 	);
-};
+}
+
+/**
+ * 找到满足y小于传入组件y的组件
+ * @param component
+ */
+function findTopMatchingComponents(component: ComponentState): ComponentState[] {
+	return components.value.filter(
+		(item) =>
+			item.y <= component.y + component.height &&
+			item.compName !== component.compName &&
+			item.compName !== currentComp.compName &&
+			!item.fixed &&
+			((item.x >= component.x && item.x <= component.x + component.width) ||
+				(item.x <= component.x && item.x + item.width >= component.x + component.width))
+	);
+}
 
 /**
  * 二次矫正幽灵组件x轴
@@ -587,7 +547,7 @@ const findBottomMatchingComponents = (component: ComponentState): ComponentState
  * @param currentComponentX
  * @param currentComponentWidth
  */
-const secondaryCorrectionLeft = (left: number, currentComponentX: number, currentComponentWidth: number): number => {
+function secondaryCorrectionLeft(left: number, currentComponentX: number, currentComponentWidth: number): number {
 	if (left < 0) {
 		return 0;
 	}
@@ -601,13 +561,13 @@ const secondaryCorrectionLeft = (left: number, currentComponentX: number, curren
 		return props.screenWidth - currentComponentWidth;
 	}
 	return left;
-};
+}
 
 /**
  * 找到距离当前组件最近组件的y
  * @param currentComponentState
  */
-const findClosestY = (currentComponentState: ComponentState, componentList?: ComponentState[]): number => {
+function findClosestY(currentComponentState: ComponentState, componentList?: ComponentState[]): number {
 	let sourceComponents: ComponentState[] = componentList && componentList.length > 0 ? componentList : components.value;
 
 	let initY = 0;
@@ -638,31 +598,31 @@ const findClosestY = (currentComponentState: ComponentState, componentList?: Com
 		);
 
 	return result.found ? result.y : initY;
-};
+}
 
 /**
  * 覆盖边界
  * @param item1
  * @param item2
  */
-const isOverlaping = (item1: ComponentState, item2: ComponentState): boolean => {
+function isOverlaping(item1: ComponentState, item2: ComponentState): boolean {
 	return (
 		item1.x < item2.x + item2.width &&
 		item1.x + item1.width > item2.x &&
 		item1.y < item2.y + item2.height &&
 		item1.y + item1.height > item2.y
 	);
-};
+}
 
 /**
  * 找到被覆盖的组件
  * @param param
  */
-const findOverlappedComponents = ({ compName, x, y, width, height }: ComponentState): ComponentState[] => {
+function findOverlappedComponents({ compName, x, y, width, height }: ComponentState): ComponentState[] {
 	return components.value
 		.filter((comp) => comp.compName !== compName)
 		.filter((item) => isOverlaping(item, { compName, x, y, width, height }));
-};
+}
 
 const ghostWidth = ref(0);
 
@@ -670,9 +630,12 @@ const ghostWidth = ref(0);
  * 计算resize幽灵组件坐标及宽高
  * @param currentComponentState
  */
-const calcResizeGhost = (
-	currentComponentState: ComponentState
-): { top: number; left: number; width: number; height: number } => {
+function calcResizeGhost(currentComponentState: ComponentState): {
+	top: number;
+	left: number;
+	width: number;
+	height: number;
+} {
 	ghostY.value = currentComponentState.y;
 	const ghostX = currentComponentState.x;
 	const currentComponentX = currentComponentState.x;
@@ -759,9 +722,9 @@ const calcResizeGhost = (
 	resetComponentsY(sourceComponents);
 
 	return { top: ghostY.value, left: ghostX, width: ghostWidth.value, height: ghostHeight };
-};
+}
 
-const findNearestXAxisComponent = (component: ComponentState): ComponentState | null => {
+function findNearestXAxisComponent(component: ComponentState): ComponentState | null {
 	let topComponents: ComponentState[] = [];
 	let bottomComponents: ComponentState[] = [];
 	const isOverlappingX = (target: ComponentState): boolean => {
@@ -799,35 +762,7 @@ const findNearestXAxisComponent = (component: ComponentState): ComponentState | 
 		return minItem;
 	}
 	return null;
-};
-
-/**
- * 深拷贝函数
- * @param obj
- * @param hash
- */
-const deepClone = <T>(obj: T, hash = new WeakMap()): T => {
-	if (obj instanceof Date) {
-		return new Date(obj) as T;
-	}
-	if (obj instanceof RegExp) {
-		return new RegExp(obj) as T;
-	}
-	if (typeof obj !== "object" || obj === null) {
-		return obj;
-	}
-	if (hash.get(obj)) {
-		return hash.get(obj) as T;
-	}
-	const cloneObj = new (obj.constructor as { new (): T })();
-	hash.set(obj, cloneObj);
-	for (let i in obj) {
-		if (obj.hasOwnProperty(i)) {
-			cloneObj[i] = deepClone((obj as any)[i], hash);
-		}
-	}
-	return cloneObj;
-};
+}
 </script>
 <style lang="less" scoped>
 .app {
@@ -849,7 +784,7 @@ const deepClone = <T>(obj: T, hash = new WeakMap()): T => {
 	.drag-container {
 		position: relative;
 		width: 100%;
-		height: 100%;
+		height: calc(100% - 30px);
 	}
 }
 </style>
