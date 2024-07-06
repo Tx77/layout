@@ -16,7 +16,7 @@ export interface ComponentState {
   moved?: boolean;
   static?: boolean;
   show?: boolean;
-  isGap?: boolean;
+  pointerEvents?: string;
 }
 
 export interface LayoutComponents extends ComponentState {
@@ -47,4 +47,3 @@ export enum GhostType {
   DRAG = 'drag',
   RESIZE = 'resize'
 }
-

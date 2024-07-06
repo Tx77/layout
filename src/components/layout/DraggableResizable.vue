@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-03 20:04:20
+ * @LastEditTime: 2024-07-06 14:28:54
  * @Description: 
 -->
 <template>
@@ -26,10 +26,9 @@
 </template>
 
 <script setup lang="ts" name="DraggableResizable">
-import type { PropType } from "vue";
+import type { defineComponent, PropType } from "vue";
 import { ref, reactive, defineEmits, watch, computed } from "vue";
 import { ComponentState, GhostStyle, GhostType } from "./params";
-import { DefineComponent } from "vue";
 
 const props = defineProps({
 	componentState: {
@@ -54,12 +53,20 @@ const props = defineProps({
 		default: 0,
 	},
 	comp: {
-		type: Object as PropType<DefineComponent>,
+		type: Object as PropType<ReturnType<typeof defineComponent>>,
 		default: () => {},
 	},
 });
 
-const emit = defineEmits(["drag", "resize", "setInitWidth", "setCurrentComponent", "setGhostComponent", "setInitX"]);
+const emit = defineEmits([
+	"drag",
+	"resize",
+	"setInitRange",
+	"setCurrentComponent",
+	"setGhostComponent",
+	"setInitX",
+	"setPointerEvents",
+]);
 const mouseCursor = ref("grab");
 
 const startX = ref(0);
@@ -74,17 +81,6 @@ const translateToPercent = (val: number): number => {
 		return val;
 	}
 	return parseFloat(((val / props.screenWidth) * 100).toFixed(4));
-};
-
-/**
- * 转化为数字类型的像素
- * @param val
- */
-const translateToPxNumber = (val: string): number => {
-	if (val.indexOf("%") > -1) {
-		return parseFloat((props.screenWidth * (parseFloat(val) / 100)).toFixed(0));
-	}
-	return parseFloat(val);
 };
 
 const containerStyle = reactive<ComponentState>({
@@ -134,6 +130,10 @@ watch(
 	}
 );
 
+/**
+ * 转换组件样式
+ * @param componentState
+ */
 const translateComponentState = (componentState: ComponentState) => {
 	return {
 		compName: props.compName,
@@ -153,6 +153,7 @@ const translateComponentState = (componentState: ComponentState) => {
  * @param event
  */
 const onMouseDown = (event: MouseEvent) => {
+	emit("setPointerEvents", "none");
 	if (props.componentState.fixed) {
 		mouseCursor.value = "auto";
 		return;
@@ -187,6 +188,7 @@ const onMouseDown = (event: MouseEvent) => {
 	};
 
 	const onMouseUp = () => {
+		emit("setPointerEvents", "auto");
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		if (props.ghostStyle) {
 			const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
@@ -215,28 +217,24 @@ const onMouseDown = (event: MouseEvent) => {
  * @param event
  */
 const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
+	emit("setPointerEvents", "none");
 	const startX = event.clientX;
 	const startY = event.clientY;
 	const startWidth = Math.floor(containerStyle.width);
 	const startHeight = Math.floor(containerStyle.height);
-	containerStyle.zIndex = "2";
+	containerStyle.zIndex = "4";
 	emit("setCurrentComponent", containerStyle);
-	emit("setInitWidth", startWidth);
-	emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
+	emit("setInitRange", startWidth, startHeight);
 
 	let newWidth = startWidth;
 	let newHeight = startHeight;
 	let isResizing = true;
 	let animationFrameId: number;
 
-	// 函数用于更新组件大小
 	const updateSize = (width: number, height: number) => {
 		containerStyle.transition = "none";
 		containerStyle.width = width;
 		containerStyle.height = height;
-
-		// 强制浏览器重绘
-		containerStyle.transform = `translateZ(0)`;
 	};
 
 	const onMouseMove = (moveEvent: MouseEvent) => {
@@ -244,7 +242,6 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			return;
 		}
 
-		// 使用 requestAnimationFrame 来节流
 		if (animationFrameId) {
 			cancelAnimationFrame(animationFrameId);
 		}
@@ -252,7 +249,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		animationFrameId = requestAnimationFrame(() => {
 			let needsUpdate = false;
 
-			// 计算新的宽度
+			//* 计算新的宽度
 			if (dir.includes("right")) {
 				newWidth = startWidth + (moveEvent.clientX - startX);
 				needsUpdate = true;
@@ -261,12 +258,12 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 				needsUpdate = true;
 			}
 
-			// 限制最小宽度
+			//* 限制最小宽度
 			if (newWidth < (containerStyle.minWidth as number)) {
 				newWidth = containerStyle.minWidth as number;
 			}
 
-			// 计算新的高度
+			//* 计算新的高度
 			if (dir.includes("bottom")) {
 				newHeight = startHeight + (moveEvent.clientY - startY);
 				needsUpdate = true;
@@ -275,43 +272,45 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 				needsUpdate = true;
 			}
 
-			// 限制最小高度
+			//* 限制最小高度
 			if (newHeight < (containerStyle.minHeight as number)) {
 				newHeight = containerStyle.minHeight as number;
 			}
 
-			// 如果需要更新，执行更新操作
 			if (needsUpdate) {
-				updateSize(newWidth, newHeight);
 				emit("setGhostComponent", true, containerStyle, GhostType.RESIZE);
+				updateSize(newWidth, newHeight);
 			}
 		});
 	};
 
 	const onMouseUp = () => {
 		isResizing = false;
+		emit("setPointerEvents", "auto");
 		containerStyle.zIndex = "3";
-
-		// 确保拿到最终的宽度和高度
-		const finalWidth = parseFloat(props.ghostStyle.width);
-		const finalHeight = parseFloat(props.ghostStyle.height);
-
-		// 发送最终的尺寸更新事件
+		//* 发送最终的尺寸更新事件
 		if (props.ghostStyle) {
-			emit(
-				"setGhostComponent",
-				false,
-				Object.assign(containerStyle, {
-					width: finalWidth,
-					height: finalHeight,
-				}),
-				GhostType.RESIZE,
-				"none"
-			);
-			emit("resize", props.compName, finalWidth, finalHeight, false);
+			const finalWidth = parseFloat(props.ghostStyle.width);
+			const finalHeight = parseFloat(props.ghostStyle.height);
+			const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
+			if (position) {
+				const [x, y] = position;
+				emit(
+					"setGhostComponent",
+					false,
+					Object.assign(containerStyle, {
+						width: finalWidth,
+						height: finalHeight,
+						x,
+						y,
+					}),
+					GhostType.RESIZE,
+					"none"
+				);
+				emit("resize", props.compName, { x, y, width: finalWidth, height: finalHeight }, false);
+			}
 		}
 
-		// 移除事件监听
 		document.removeEventListener("mousemove", onMouseMove);
 		document.removeEventListener("mouseup", onMouseUp);
 
@@ -320,23 +319,27 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		}
 	};
 
-	// 添加事件监听
 	document.addEventListener("mousemove", onMouseMove);
 	document.addEventListener("mouseup", onMouseUp);
 };
-
+/**
+ * 转换translate中的坐标
+ * @param transform
+ */
 function transformTranslateToLeftTop(transform: string): [number, number] | null {
-	// 匹配 translate 或 translate3d
+	//* 匹配 translate 或 translate3d
 	const translateMatch = transform.match(/translate(?:3d)?\(\s*([^)]+)\s*\)/);
 
 	if (translateMatch) {
-		const values = translateMatch[1].split(/,\s*/);
+		const values = translateMatch[1]?.split(/,\s*/);
+		if (values && values.length >= 2) {
+			//* 获取 translateX 和 translateY 的值
+			const translateX = parseFloat(values[0] as string);
+			const translateY = parseFloat(values[1] as string);
 
-		// 获取 translateX 和 translateY 的值
-		const translateX = parseFloat(values[0]);
-		const translateY = parseFloat(values[1]);
-
-		return [translateX, translateY];
+			return [translateX, translateY];
+		}
+		return null;
 	}
 	return null;
 }
@@ -358,7 +361,7 @@ function transformTranslateToLeftTop(transform: string): [number, number] | null
 	width: 10px;
 	height: 10px;
 	background-color: #333;
-	z-index: 1;
+	z-index: 11;
 }
 .resize-handle.top {
 	top: -5px;
@@ -403,5 +406,13 @@ function transformTranslateToLeftTop(transform: string): [number, number] | null
 	bottom: 0px;
 	right: 0px;
 	cursor: se-resize;
+}
+.cover {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(81, 37, 43, 0.9);
 }
 </style>
