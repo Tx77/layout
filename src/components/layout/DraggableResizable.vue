@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-06 14:28:54
+ * @LastEditTime: 2024-07-09 17:56:58
  * @Description: 
 -->
 <template>
@@ -52,6 +52,10 @@ const props = defineProps({
 		type: Number,
 		default: 0,
 	},
+	ghostStepX: {
+		type: Number,
+		default: 0,
+	},
 	comp: {
 		type: Object as PropType<ReturnType<typeof defineComponent>>,
 		default: () => {},
@@ -93,6 +97,7 @@ const containerStyle = reactive<ComponentState>({
 	y: props.componentState.y,
 	zIndex: props.componentState.zIndex,
 	transition: props.componentState.transition,
+	step: props.componentState.step,
 });
 
 const computedContainerStyle = computed(() => {
@@ -259,8 +264,8 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			}
 
 			//* 限制最小宽度
-			if (newWidth < (containerStyle.minWidth as number)) {
-				newWidth = containerStyle.minWidth as number;
+			if (newWidth < (containerStyle.minWidth as number) * props.ghostStepX) {
+				newWidth = (containerStyle.minWidth as number) * props.ghostStepX;
 			}
 
 			//* 计算新的高度

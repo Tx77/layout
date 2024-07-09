@@ -1,12 +1,19 @@
 /*
  * @Author: 田鑫
- * @Date: 2024-06-13 16:09:47
+ * @Date: 2024-07-08 15:19:29
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-09 18:13:36
+ * @LastEditTime: 2024-07-09 15:53:13
+ * @Description:
+ */
+/*
+ * @Author: 田鑫
+ * @Date: 2024-07-03 11:25:04
+ * @LastEditors: 田鑫
+ * @LastEditTime: 2024-07-08 10:00:18
  * @Description:
  */
 
-import { LayoutStrategy, ScreenResolutionMap } from "./layout";
+import { LayoutStrategy, type ScreenResolutionMap } from "./params";
 
 export const contractTradeLayout: ScreenResolutionMap[] = [
 	{
@@ -257,7 +264,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [1600, 2133],
 					compName: "UserExchangeTable",
-					height: 358,
+					height: 700,
 					x: 0,
 					y: 674,
 					zIndex: "3",
@@ -278,7 +285,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 6,
+					minWidth: 497,
 					minHeight: 60,
 				},
 				{
@@ -290,7 +297,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 2,
+					minWidth: 248,
 					minHeight: 60,
 				},
 				{
@@ -302,7 +309,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 2,
+					minWidth: 266,
 					minHeight: 60,
 				},
 				{
@@ -314,7 +321,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 7,
+					minWidth: 768,
 					minHeight: 60,
 				},
 			],

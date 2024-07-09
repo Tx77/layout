@@ -1,36 +1,37 @@
 import { defineComponent } from "vue";
 
 export interface ComponentState {
-  compName: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  minWidth?: number;
-  minHeight?: number;
-  zIndex?: number | string;
-  fixed?: boolean;
-  overflow?: string;
-  position?: string;
-  transition?: string;
-  moved?: boolean;
-  static?: boolean;
-  show?: boolean;
-  pointerEvents?: string;
+	compName: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	minWidth?: number;
+	minHeight?: number;
+	zIndex?: number | string;
+	fixed?: boolean;
+	overflow?: string;
+	position?: string;
+	transition?: string;
+	moved?: boolean;
+	static?: boolean;
+	show?: boolean;
+	pointerEvents?: string;
+	step?: number;
 }
 
 export interface LayoutComponents extends ComponentState {
-  comp: ReturnType<typeof defineComponent>;
+	comp: ReturnType<typeof defineComponent>;
 }
 export interface GhostStyle {
-  width: string;
-  height: string;
-  zIndex?: string;
-  backgroundColor: string;
-  position: string;
-  transition?: string;
-  cursor?: string;
-  transform?: string;
+	width: string;
+	height: string;
+	zIndex?: string;
+	backgroundColor: string;
+	position: string;
+	transition?: string;
+	cursor?: string;
+	transform?: string;
 }
 
 /**
@@ -38,12 +39,12 @@ export interface GhostStyle {
  * @param currentComponent
  */
 export interface DistanceResult {
-  component: ComponentState;
-  distance: number;
-  direction: "left" | "right";
+	component: ComponentState;
+	distance: number;
+	direction: "left" | "right";
 }
 
 export enum GhostType {
-  DRAG = 'drag',
-  RESIZE = 'resize'
+	DRAG = "drag",
+	RESIZE = "resize",
 }
