@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-09 17:56:58
+ * @LastEditTime: 2024-07-10 10:59:12
  * @Description: 
 -->
 <template>
@@ -264,7 +264,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			}
 
 			//* 限制最小宽度
-			if (newWidth < (containerStyle.minWidth as number) * props.ghostStepX) {
+			if (newWidth <= (containerStyle.minWidth as number) * props.ghostStepX) {
 				newWidth = (containerStyle.minWidth as number) * props.ghostStepX;
 			}
 
@@ -278,7 +278,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			}
 
 			//* 限制最小高度
-			if (newHeight < (containerStyle.minHeight as number)) {
+			if (newHeight <= (containerStyle.minHeight as number)) {
 				newHeight = containerStyle.minHeight as number;
 			}
 
@@ -411,13 +411,5 @@ function transformTranslateToLeftTop(transform: string): [number, number] | null
 	bottom: 0px;
 	right: 0px;
 	cursor: se-resize;
-}
-.cover {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(81, 37, 43, 0.9);
 }
 </style>

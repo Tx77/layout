@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-09 18:10:38
+ * @LastEditTime: 2024-07-10 13:43:39
  * @Description: 
 -->
 <template>
@@ -16,7 +16,7 @@
 			:directions="['bottom-right']"
 			:screenWidth="screenWidth"
 			:comp="componentInstance[comp.compName]"
-			:ghostStepX="ghostStepX"
+			:ghostStepX="ghostDefaultStepX"
 			@drag="handleDrag"
 			@resize="handleResize"
 			@setInitRange="setInitRange"
@@ -27,6 +27,11 @@
 			@setResizeGhostComponent="setResizeGhostComponent"
 		>
 		</DraggableResizable>
+		<!-- <div class="grid">
+			<div v-for="item in 24" :key="item" class="grid-item">
+				<span class="num">{{ item }}</span>
+			</div>
+		</div> -->
 		<div class="ghost" v-if="ghostShow" :style="ghostStyle"></div>
 	</div>
 </template>
@@ -75,6 +80,7 @@ const currentComp = reactive<ComponentState>({
 const ghostShow = ref(false);
 //* 幽灵组件x轴移动的阈值
 const ghostStepX = ref(0);
+const ghostDefaultStepX = ref(0);
 //* 幽灵组件y轴移动的阈值
 const ghostStepY = ref(10);
 //* 幽灵组件样式
@@ -97,11 +103,11 @@ watch(
 	() => props.layoutComponents,
 	() => {
 		if (props.layoutComponents) {
-			const defaultStepX = setGhostStepXRange();
+			ghostDefaultStepX.value = setGhostStepXRange();
+			ghostStepX.value = ghostDefaultStepX.value + gap.value / 2;
 			const localComponents = props.layoutComponents.map((item) => {
 				const width = translateToPxNumber(item.layoutStyle.width);
 				const minWidth = translateToPxNumber(item.layoutStyle.minWidth);
-				const step = recalcGhostStepX(defaultStepX, width, minWidth);
 				return {
 					compName: item.compName,
 					width,
@@ -117,7 +123,6 @@ watch(
 					static: true,
 					show: item.show,
 					pointerEvents: "auto",
-					step,
 				};
 			});
 
@@ -148,15 +153,15 @@ watch(
  * 设置幽灵组件X轴步进值
  */
 function setGhostStepXRange(): number {
-	return Math.floor(props.layoutResizer.screenMaxWidth.value / 24);
+	return Math.floor(props.screenWidth / 24);
 }
 
 function recalcGhostStepX(defaultStepX: number, width: number, minWidth: number): number {
-	const result = (width / defaultStepX).toFixed(4);
+	const result = ((width - minWidth * defaultStepX - gap.value) / defaultStepX).toFixed(4);
 	const index = result.indexOf(".");
 	const integer = parseInt(result.substring(0, index));
 	const decimal = parseFloat("0" + result.substring(index, result.length - 1));
-	const step = Math.round(decimal * defaultStepX) / (integer - minWidth) + defaultStepX;
+	const step = Math.round(decimal * defaultStepX) / integer + defaultStepX;
 	return step;
 }
 
@@ -293,7 +298,6 @@ function handleResize(
 function setCurrentComponent(currentComponent: ComponentState) {
 	Object.assign(currentComp, currentComponent);
 	ghostY.value = currentComp.y;
-	ghostStepX.value = currentComp.step!;
 }
 
 const setInitX = (initX: number) => {
@@ -390,39 +394,55 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		currentComponentState.x = props.screenWidth - currentComponentWidth;
 	}
 	const stepX = Math.ceil(ghostStepX.value / 2);
+	const ghostComponentState = () => ({
+		compName: currentComponentState.compName,
+		x: ghostX.value,
+		y: ghostY.value,
+		width: currentComponentWidth,
+		height: currentComponentHeight,
+	});
+	const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
+	if (nearestXAxisComponent) {
+		const currentSumWidth = currentComponentWidth + currentComponentX;
+		const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
+		if (Math.abs(nearestXSumWidth - currentSumWidth) <= stepX) {
+			ghostX.value = nearestXSumWidth - currentComponentWidth;
+		}
+		if (Math.abs(nearestXAxisComponent.x - currentComponentX) <= stepX) {
+			ghostX.value = nearestXAxisComponent.x;
+		}
+	}
 
-	const moveGhostX = () => {
-		if (Math.abs(currentComponentX - ghostX.value) >= stepX) {
-			if (currentComponentX - ghostX.value > 0) {
-				if (currentComponentWidth + ghostX.value > props.screenWidth) {
-					ghostX.value = props.screenWidth - currentComponentWidth;
-				} else {
-					ghostX.value += ghostStepX.value;
-				}
+	if (Math.abs(currentComponentX - ghostX.value) >= stepX) {
+		if (currentComponentX - ghostX.value > 0) {
+			if (currentComponentWidth + ghostX.value > props.screenWidth) {
+				ghostX.value = props.screenWidth - currentComponentWidth;
 			} else {
-				if (ghostX.value - ghostStepX.value <= 0) {
-					ghostX.value = 0;
-				} else {
-					ghostX.value -= ghostStepX.value;
-				}
+				ghostX.value += ghostStepX.value;
+			}
+		} else {
+			if (ghostX.value - ghostStepX.value <= 0) {
+				ghostX.value = 0;
+			} else {
+				ghostX.value -= ghostStepX.value;
 			}
 		}
-	};
+	}
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
-	// const nearestComponent = findNearestXComponent(currentComponentState);
-	// if (
-	// 	nearestComponent &&
-	// 	nearestComponent.distance <= stepX
-	// 	//* 幽灵组件也不能和其他组件发生碰撞
-	// 	// findOverlappedComponents(Object.assign(currentComponentState, { x: ghostX.value, y: ghostY.value })).length === 0
-	// ) {
-	// 	if (nearestComponent.direction === "left") {
-	// 		ghostX.value = nearestComponent.component.x + nearestComponent.component.width + gap.value;
-	// 	} else {
-	// 		ghostX.value = nearestComponent.component.x - currentComponentWidth - gap.value;
-	// 	}
-	// }
+	const nearestComponent = findNearestXComponent(currentComponentState);
+	if (
+		nearestComponent &&
+		nearestComponent.distance <= stepX
+		//* 幽灵组件也不能和其他组件发生碰撞
+		// findOverlappedComponents(Object.assign(currentComponentState, { x: ghostX.value, y: ghostY.value })).length === 0
+	) {
+		if (nearestComponent.direction === "left") {
+			ghostX.value = nearestComponent.component.x + nearestComponent.component.width + gap.value;
+		} else {
+			ghostX.value = nearestComponent.component.x - currentComponentWidth - gap.value;
+		}
+	}
 
 	const ghostCheck = (): ComponentState[] => {
 		const ghostOverlappedComponents = findOverlappedComponents({
@@ -492,8 +512,6 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		ghostY.value = findClosestY(currentComponentState);
 	}
 
-	moveGhostX();
-
 	// ghostX.value = secondaryCorrectionLeft(ghostX.value, currentComponentX, currentComponentWidth);
 
 	if (flag.value) {
@@ -542,32 +560,40 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	let currentComponentX = currentComponentState.x;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
+	const minWidth = currentComponentState.minWidth! * ghostDefaultStepX.value;
 	const stepX = Math.ceil(ghostStepX.value / 2);
 	const stepY = Math.ceil(ghostStepY.value / 2);
 
 	if (currentComponentX + currentComponentWidth >= props.screenWidth) {
 		currentComponentX = props.screenWidth - currentComponentWidth;
 	}
+
+	const nearestXAxisComponent = findNearestXAxisComponent(currentComponentState);
+	if (nearestXAxisComponent) {
+		const currentSumWidth = currentComponentWidth + currentComponentX;
+		const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
+		if (Math.abs(nearestXSumWidth - currentSumWidth) <= stepX) {
+			ghostWidth.value = nearestXSumWidth;
+		}
+	}
+
 	//* X轴步进计算
-	if (currentComponentWidth >= currentComponentState.minWidth!) {
-		if (Math.abs(currentComponentWidth - ghostWidth.value) >= stepX) {
-			if (currentComponentWidth - ghostWidth.value > 0) {
+	if (currentComponentWidth >= minWidth) {
+		if (Math.abs(currentComponentWidth - ghostWidth.value) > stepX) {
+			if (currentComponentWidth - ghostWidth.value >= 0) {
 				if (ghostWidth.value + ghostStepX.value > props.screenWidth) {
 					ghostWidth.value = props.screenWidth;
 				} else {
 					ghostWidth.value += ghostStepX.value;
 				}
 			} else {
-				if (ghostWidth.value - ghostStepX.value >= currentComponentState.minWidth!) {
-					ghostWidth.value -= ghostStepX.value;
+				if (currentComponentWidth <= minWidth || ghostWidth.value - ghostStepX.value <= minWidth) {
+					ghostWidth.value = minWidth;
 				} else {
-					ghostWidth.value = currentComponentWidth;
+					ghostWidth.value -= ghostStepX.value;
 				}
 			}
 		} else {
-			if (ghostWidth.value - ghostStepX.value <= currentComponentState.minWidth!) {
-				ghostWidth.value = currentComponentWidth;
-			}
 			if (ghostWidth.value + ghostStepX.value > props.screenWidth) {
 				ghostWidth.value = props.screenWidth;
 			}
@@ -596,33 +622,21 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	}
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
-	// const nearestComponent = findNearestXComponent(
-	// 	Object.assign(currentComponentState, {
-	// 		width: ghostWidth.value,
-	// 		height: currentComponentHeight,
-	// 	})
-	// );
-	// //* 最近组件必须在当前组件右边
-	// if (
-	// 	nearestComponent &&
-	// 	ghostX.value + currentComponentWidth + gap.value <= nearestComponent.component.x &&
-	// 	nearestComponent.component.x - (ghostX.value + currentComponentWidth + gap.value) <= stepX
-	// ) {
-	// 	ghostWidth.value = nearestComponent.component.x - ghostX.value - gap.value;
-	// }
+	const nearestComponent = findNearestXComponent(
+		Object.assign(currentComponentState, {
+			width: ghostWidth.value,
+			height: currentComponentHeight,
+		})
+	);
+	//* 最近组件必须在当前组件右边
+	if (
+		nearestComponent &&
+		ghostX.value + currentComponentWidth + gap.value <= nearestComponent.component.x &&
+		nearestComponent.component.x - (ghostX.value + currentComponentWidth + gap.value) <= stepX
+	) {
+		ghostWidth.value = nearestComponent.component.x - ghostX.value - gap.value;
+	}
 
-	// const nearestXAxisComponent = findNearestXAxisComponent(currentComponentState);
-	// if (nearestXAxisComponent) {
-	// 	const currentSumWidth = currentComponentWidth + currentComponentX;
-	// 	const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
-	// 	if (Math.abs(nearestXSumWidth - currentSumWidth) < stepX && nearestXAxisComponent.x > 0) {
-	// 		if (nearestXSumWidth - currentSumWidth > 0) {
-	// 			ghostWidth.value = nearestXSumWidth;
-	// 		} else {
-	// 			ghostWidth.value = nearestXAxisComponent.x;
-	// 		}
-	// 	}
-	// }
 	const belowComponentsMove = (ghostBelowComponents: ComponentState[]) => {
 		let initYAxis = ghostY.value + ghostHeight.value + gap.value;
 		ghostBelowComponents.forEach((comp) => {
@@ -872,19 +886,17 @@ function findNearestXAxisComponent(component: ComponentState): ComponentState | 
 		);
 	};
 	components.value.forEach((item) => {
-		if (
-			item.compName !== component.compName &&
-			isOverlappingX(item) &&
-			item.x + item.width !== component.x + component.width
-		) {
-			if (item.y + item.height <= component.y) {
+		if (item.compName !== component.compName && isOverlappingX(item)) {
+			if (item.y + item.height + gap.value === component.y) {
 				topComponents.push(item);
 			}
-			if (item.y >= component.y + component.height) {
+			if (item.y === component.y + component.height + gap.value) {
 				bottomComponents.push(item);
 			}
 		}
 	});
+	// console.log("topComponents", topComponents);
+	// console.log("bottomComponents", bottomComponents);
 
 	const arr = topComponents.concat(bottomComponents) as ComponentState[];
 	if (arr.length > 0) {
@@ -918,11 +930,39 @@ function findNearestXAxisComponent(component: ComponentState): ComponentState | 
 		left: 0;
 		z-index: 2;
 	}
-	.drag-resize-container {
-		position: relative;
+}
+.drag-resize-container {
+	position: relative;
+	width: 100%;
+	height: calc(100% - 30px);
+	overflow-y: auto;
+	.grid {
 		width: 100%;
-		height: calc(100% - 30px);
-		overflow-y: auto;
+		height: 100vh;
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 1;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(24, 1fr);
+		.grid-item {
+			height: 100%;
+			background-color: #fff;
+			color: #000;
+			font-size: 24;
+			display: flex;
+			justify-content: center;
+			align-items: end;
+			.num {
+				position: relative;
+				bottom: 40px;
+			}
+		}
+		.grid-item:last-child {
+			margin-right: 0;
+		}
 	}
 }
 </style>

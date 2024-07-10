@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-09 17:53:18
+ * @LastEditTime: 2024-07-10 11:08:12
  * @Description:
  */
 
@@ -25,7 +25,6 @@ export interface ComponentStyle {
 	display?: string;
 	overflow?: string;
 	zIndex: string;
-	step: number;
 }
 
 export interface ComponentState {
