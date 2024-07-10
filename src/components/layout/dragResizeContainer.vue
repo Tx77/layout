@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 15:09:54
+ * @LastEditTime: 2024-07-10 15:18:25
  * @Description: 
 -->
 <template>
@@ -392,30 +392,18 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		height: currentComponentHeight,
 	});
 
-	const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
-	if (nearestXAxisComponent) {
-		const currentSumWidth = currentComponentWidth + currentComponentX;
-		const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
-		if (Math.abs(nearestXSumWidth - currentSumWidth) <= stepX) {
-			ghostX.value = nearestXSumWidth - currentComponentWidth;
-		}
-		if (Math.abs(nearestXAxisComponent.x - currentComponentX) <= stepX) {
-			ghostX.value = nearestXAxisComponent.x;
-		}
-	}
-
 	if (Math.abs(currentComponentX - ghostX.value) >= stepX) {
 		if (currentComponentX - ghostX.value > 0) {
 			if (currentComponentWidth + ghostX.value >= props.screenWidth) {
 				ghostX.value = props.screenWidth - currentComponentWidth;
 			} else {
-				ghostX.value += ghostStepX.value;
+				ghostX.value = currentComponentX + stepX;
 			}
 		} else {
 			if (ghostX.value - ghostStepX.value <= 0) {
 				ghostX.value = 0;
 			} else {
-				ghostX.value -= ghostStepX.value;
+				ghostX.value = currentComponentX - stepX;
 			}
 		}
 	}
@@ -427,6 +415,19 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			ghostX.value = nearestComponent.component.x + nearestComponent.component.width + gap.value;
 		} else {
 			ghostX.value = nearestComponent.component.x - currentComponentWidth - gap.value;
+		}
+	}
+
+	//* 找到X轴上紧贴的上下组件
+	const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
+	if (nearestXAxisComponent) {
+		const currentSumWidth = currentComponentWidth + currentComponentX;
+		const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
+		if (Math.abs(nearestXSumWidth - currentSumWidth) <= stepX) {
+			ghostX.value = nearestXSumWidth - currentComponentWidth;
+		}
+		if (Math.abs(nearestXAxisComponent.x - currentComponentX) <= stepX) {
+			ghostX.value = nearestXAxisComponent.x;
 		}
 	}
 
@@ -573,12 +574,12 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	if (currentComponentHeight >= currentComponentState.minHeight!) {
 		if (Math.abs(currentComponentHeight - ghostHeight.value) > stepY) {
 			if (currentComponentHeight - ghostHeight.value > 0) {
-				ghostHeight.value += ghostStepY.value;
+				ghostHeight.value = currentComponentHeight + stepY;
 			} else {
 				if (ghostHeight.value - stepY <= currentComponentState.minHeight!) {
 					ghostHeight.value = currentComponentState.minHeight!;
 				} else {
-					ghostHeight.value -= ghostStepY.value;
+					ghostHeight.value = currentComponentHeight - stepY;
 				}
 			}
 		} else {
