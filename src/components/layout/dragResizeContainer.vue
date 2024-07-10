@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 19:52:45
+ * @LastEditTime: 2024-07-10 20:23:49
  * @Description: 
 -->
 <template>
@@ -542,7 +542,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	ghostY.value = currentComponentState.y;
 	ghostX.value = currentComponentState.x;
 	let currentComponentX = currentComponentState.x;
-	let currentComponentY = currentComponentState.y;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
 	const currentComponentMinWidth = currentComponentState.minW! * ghostDefaultStepX.value;
@@ -596,7 +595,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			height: currentComponentHeight,
 		})
 	);
-	//* 最近组件必须在当前组件右边
 	if (
 		nearestComponent &&
 		ghostX.value + currentComponentWidth + gap.value <= nearestComponent.component.x &&
@@ -659,24 +657,23 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		);
 	};
 
-	const componentsBelowCurrent = findBottomMatchingComponents(currentComponentState);
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 
 	//! resize规则：
 	//? 1、碰撞规则分为：a) 当前组件与其他组件碰撞，b) 幽灵组件与其他组件碰撞，其中幽灵组件碰撞为当前组件碰撞的子逻辑
 	//? 2、当前组件
 	if (overlappedComponents && overlappedComponents.length > 0) {
+		console.log(overlappedComponents);
 		flag.value = false;
 		const item = overlappedComponents[overlappedComponents.length - 1];
 		const leftOverlapped =
 			currentComponentX + currentComponentWidth >= item.x + stepX &&
 			currentComponentX + currentComponentWidth < item.x + item.width;
+		const rightOverlapped = currentComponentX > item.x && currentComponentX <= item.x + item.width - stepX;
 		const leftRightBoth =
 			currentComponentX <= item.x && currentComponentX + currentComponentWidth >= item.x + item.width;
-		const topOverlapped =
-			currentComponentY + currentComponentHeight + gap.value >= item.y + stepY &&
-			currentComponentY + currentComponentHeight < item.y + item.height;
-		if (leftOverlapped || leftRightBoth) {
+		if (leftOverlapped || rightOverlapped || leftRightBoth) {
+			console.log("===");
 			if (item.y >= ghostY.value) {
 				// const belowComponents = findBottomMatchingComponents(item);
 				// belowComponents.unshift(item);
@@ -684,6 +681,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			}
 			if (item.y < ghostY.value) {
 				ghostY.value = item.y + item.height + gap.value;
+				const componentsBelowCurrent = findBottomMatchingComponents(currentComponentState);
 				belowComponentsMove(componentsBelowCurrent);
 			}
 			const ghostOverlappedComponents = findOverlappedComponents(ghostComponentState());
