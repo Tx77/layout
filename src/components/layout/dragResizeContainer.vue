@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 15:18:25
+ * @LastEditTime: 2024-07-10 19:52:45
  * @Description: 
 -->
 <template>
@@ -529,7 +529,6 @@ function setResizeGhostComponent(currentComponentState: ComponentState) {
 		};
 	}
 }
-
 /**
  * 计算resize幽灵组件坐标及宽高
  * @param currentComponentState
@@ -543,6 +542,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	ghostY.value = currentComponentState.y;
 	ghostX.value = currentComponentState.x;
 	let currentComponentX = currentComponentState.x;
+	let currentComponentY = currentComponentState.y;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
 	const currentComponentMinWidth = currentComponentState.minW! * ghostDefaultStepX.value;
@@ -618,14 +618,48 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		}
 	}
 
+	const ghostComponentState = () => ({
+		compName: currentComponentState.compName,
+		x: ghostX.value,
+		y: ghostY.value,
+		width: ghostWidth.value,
+		height: ghostHeight.value,
+	});
+
+	/**
+	 * 组件向下移动
+	 * @param ghostBelowComponents
+	 */
 	const belowComponentsMove = (ghostBelowComponents: ComponentState[]) => {
 		let initYAxis = ghostY.value + ghostHeight.value + gap.value;
-		ghostBelowComponents.forEach((comp) => {
-			comp.y = initYAxis;
+		ghostBelowComponents.forEach((comp, index) => {
+			if (index > 0) {
+				const topComponents = findClosestTop(comp);
+				if (topComponents && topComponents.length > 0) {
+					comp.y = topComponents[0].y + topComponents[0].height + gap.value;
+				}
+			} else {
+				comp.y = initYAxis;
+			}
 			comp.moved = true;
-			initYAxis += comp.height + gap.value;
 		});
 	};
+
+	/**
+	 * 找到距离顶部最近的组件
+	 * @param comp
+	 */
+	const findClosestTop = (comp: ComponentState): ComponentState[] => {
+		return components.value.filter(
+			(item) =>
+				item.compName !== comp.compName &&
+				item.y + item.height + gap.value >= comp.y &&
+				item.y + item.height + gap.value < comp.y + comp.height &&
+				((item.x >= comp.x && item.x <= comp.x + comp.width) || (item.x <= comp.x && item.x + item.width >= comp.x))
+		);
+	};
+
+	const componentsBelowCurrent = findBottomMatchingComponents(currentComponentState);
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 
 	//! resize规则：
@@ -633,31 +667,29 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	//? 2、当前组件
 	if (overlappedComponents && overlappedComponents.length > 0) {
 		flag.value = false;
-		const ghostComponentState = () => ({
-			compName: currentComponentState.compName,
-			x: ghostX.value,
-			y: ghostY.value,
-			width: ghostWidth.value,
-			height: ghostHeight.value,
-		});
 		const item = overlappedComponents[overlappedComponents.length - 1];
 		const leftOverlapped =
 			currentComponentX + currentComponentWidth >= item.x + stepX &&
 			currentComponentX + currentComponentWidth < item.x + item.width;
 		const leftRightBoth =
 			currentComponentX <= item.x && currentComponentX + currentComponentWidth >= item.x + item.width;
+		const topOverlapped =
+			currentComponentY + currentComponentHeight + gap.value >= item.y + stepY &&
+			currentComponentY + currentComponentHeight < item.y + item.height;
 		if (leftOverlapped || leftRightBoth) {
 			if (item.y >= ghostY.value) {
-				const belowComponents = findBottomMatchingComponents(item);
-				belowComponents.unshift(item);
-				belowComponentsMove(belowComponents);
+				// const belowComponents = findBottomMatchingComponents(item);
+				// belowComponents.unshift(item);
+				// belowComponentsMove(belowComponents);
 			}
 			if (item.y < ghostY.value) {
 				ghostY.value = item.y + item.height + gap.value;
+				belowComponentsMove(componentsBelowCurrent);
 			}
 			const ghostOverlappedComponents = findOverlappedComponents(ghostComponentState());
 			if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
 				const ghostItem = ghostOverlappedComponents[ghostOverlappedComponents.length - 1];
+				// belowComponentsMove(componentsBelowCurrent);
 				const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
 				ghostBelowComponents.unshift(ghostItem);
 				belowComponentsMove(ghostBelowComponents);
@@ -737,17 +769,30 @@ function findNearestXComponent(currentComponent: ComponentState): DistanceResult
  * @param component
  */
 function findBottomMatchingComponents(component: ComponentState): ComponentState[] {
-	return components.value
-		.filter(
-			(item) =>
-				item.y + ghostStepY.value >= component.y + component.height + gap.value &&
-				item.compName !== currentComp.compName &&
-				((item.x >= component.x && item.x <= component.x + component.width) ||
-					(item.x <= component.x && item.x + item.width >= component.x))
-		)
-		.sort((a, b) => {
-			return a.y + a.height - (b.y + b.height);
-		});
+	const arr: ComponentState[] = [];
+	const sortedComponents = components.value.slice().sort((a, b) => a.y - b.y);
+	const executeFunc = (comp: ComponentState) => {
+		const index = sortedComponents.findIndex(
+			(item) => item.y + ghostStepY.value / 2 >= comp.y + comp.height + gap.value
+		);
+		if (index > -1) {
+			for (let i = index; i < sortedComponents.length; i++) {
+				const item = sortedComponents[i];
+				if (
+					item.y + ghostStepY.value >= comp.y + comp.height + gap.value &&
+					item.compName !== currentComp.compName &&
+					((item.x >= comp.x && item.x <= comp.x + comp.width) || (item.x <= comp.x && item.x + item.width >= comp.x))
+				) {
+					if (arr.findIndex((i) => i.compName === item.compName) < 0) {
+						arr.push(item);
+					}
+					executeFunc(item);
+				}
+			}
+		}
+	};
+	executeFunc(component);
+	return arr;
 }
 
 /**
