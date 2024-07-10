@@ -6,7 +6,7 @@ export interface ComponentState {
 	y: number;
 	width: number;
 	height: number;
-	minWidth?: number;
+	minW?: number;
 	minHeight?: number;
 	zIndex?: number | string;
 	fixed?: boolean;

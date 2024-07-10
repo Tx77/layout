@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-12 10:17:44
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 11:08:12
+ * @LastEditTime: 2024-07-10 14:04:47
  * @Description:
  */
 
@@ -17,7 +17,7 @@ export interface ComponentStyle {
 	left: string;
 	top: string;
 	width: string;
-	minWidth: string;
+	minW: number;
 	maxWidth?: string;
 	minHeight: string;
 	height: string;
@@ -50,7 +50,7 @@ export type Coordinate = number | [number, number];
 
 export type ComponentWidthRange = {
 	width: [number, number];
-	minWidth?: number;
+	minW?: number;
 	minHeight?: number;
 	height: number;
 	compName: string;

@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 10:59:12
+ * @LastEditTime: 2024-07-10 14:35:38
  * @Description: 
 -->
 <template>
@@ -91,7 +91,7 @@ const containerStyle = reactive<ComponentState>({
 	compName: props.compName,
 	width: props.componentState.width,
 	height: props.componentState.height,
-	minWidth: props.componentState.minWidth,
+	minW: props.componentState.minW,
 	minHeight: props.componentState.minHeight,
 	x: props.componentState.x,
 	y: props.componentState.y,
@@ -146,7 +146,7 @@ const translateComponentState = (componentState: ComponentState) => {
 		height: componentState.height,
 		y: componentState.y,
 		x: componentState.x,
-		minWidth: componentState.minWidth,
+		minW: componentState.minW,
 		minHeight: componentState.minHeight,
 		zIndex: componentState.zIndex,
 		transition: componentState.transition,
@@ -264,8 +264,13 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 			}
 
 			//* 限制最小宽度
-			if (newWidth <= (containerStyle.minWidth as number) * props.ghostStepX) {
-				newWidth = (containerStyle.minWidth as number) * props.ghostStepX;
+			if (newWidth <= (containerStyle.minW as number) * props.ghostStepX) {
+				newWidth = (containerStyle.minW as number) * props.ghostStepX;
+			}
+
+			//* 限制最大宽度
+			if (newWidth >= props.screenWidth) {
+				newWidth = props.screenWidth;
 			}
 
 			//* 计算新的高度

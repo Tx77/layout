@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:09:47
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 10:59:55
+ * @LastEditTime: 2024-07-10 15:09:09
  * @Description:
  */
 
@@ -23,8 +23,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 497,
-					minHeight: 60,
 				},
 				{
 					width: [500, 755],
@@ -35,8 +33,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 248,
-					minHeight: 60,
 				},
 				{
 					width: [266, 266],
@@ -47,8 +43,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
-					minHeight: 60,
 				},
 				{
 					width: [768, 1023],
@@ -59,8 +53,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
-					minHeight: 60,
 				},
 			],
 			"[1024, 1280]": [
@@ -74,8 +66,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 497,
-					minHeight: 60,
 				},
 				{
 					width: [266, 266],
@@ -86,8 +76,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 248,
-					minHeight: 60,
 				},
 				{
 					width: [266, 266],
@@ -98,8 +86,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
-					minHeight: 60,
 				},
 				{
 					width: [760, 1010],
@@ -110,8 +96,6 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
-					minHeight: 60,
 				},
 			],
 			"[1281, 1440]": [
@@ -125,7 +109,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 497,
+					minW: 8,
 					minHeight: 60,
 				},
 				{
@@ -137,7 +121,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 248,
+					minW: 4,
 					minHeight: 60,
 				},
 				{
@@ -149,7 +133,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
+					minW: 4,
 					minHeight: 60,
 				},
 				{
@@ -161,7 +145,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
+					minW: 10,
 					minHeight: 60,
 				},
 			],
@@ -176,7 +160,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 497,
+					minW: 7,
 					minHeight: 60,
 				},
 				{
@@ -188,7 +172,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 248,
+					minW: 3,
 					minHeight: 60,
 				},
 				{
@@ -200,7 +184,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 266,
+					minW: 3,
 					minHeight: 60,
 				},
 				{
@@ -212,7 +196,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 768,
+					minW: 7,
 					minHeight: 60,
 				},
 			],
@@ -227,7 +211,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 6,
+					minW: 6,
 					minHeight: 60,
 				},
 				{
@@ -239,7 +223,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 2,
+					minW: 2,
 					minHeight: 60,
 				},
 				{
@@ -251,7 +235,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 2,
+					minW: 2,
 					minHeight: 60,
 				},
 				{
@@ -263,7 +247,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 7,
+					minW: 7,
 					minHeight: 60,
 				},
 			],
@@ -278,7 +262,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 6,
+					minW: 6,
 					minHeight: 60,
 				},
 				{
@@ -290,7 +274,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 2,
+					minW: 2,
 					minHeight: 60,
 				},
 				{
@@ -302,7 +286,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 2,
+					minW: 2,
 					minHeight: 60,
 				},
 				{
@@ -314,7 +298,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 7,
+					minW: 7,
 					minHeight: 60,
 				},
 			],
@@ -333,7 +317,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -345,7 +329,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -357,7 +341,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -369,7 +353,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -381,7 +365,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -395,7 +379,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -407,7 +391,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -419,7 +403,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -431,7 +415,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -443,7 +427,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -457,7 +441,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -469,7 +453,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -481,7 +465,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -493,7 +477,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -505,7 +489,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -519,7 +503,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -531,7 +515,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -543,7 +527,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -555,7 +539,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -567,7 +551,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -581,7 +565,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -593,7 +577,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -605,7 +589,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -617,7 +601,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -629,7 +613,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -648,7 +632,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -660,7 +644,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -672,7 +656,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -684,7 +668,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -696,7 +680,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -710,7 +694,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -722,7 +706,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -734,7 +718,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -746,7 +730,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -758,7 +742,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -772,7 +756,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -784,7 +768,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -796,7 +780,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -808,7 +792,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -820,7 +804,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -834,7 +818,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -846,7 +830,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -858,7 +842,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -870,7 +854,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -882,7 +866,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
@@ -896,7 +880,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "2",
 					fixed: true,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -908,7 +892,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -920,7 +904,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -932,7 +916,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 				{
@@ -944,7 +928,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					zIndex: "3",
 					fixed: false,
 					show: true,
-					minWidth: 240,
+					minW: 240,
 					minHeight: 60,
 				},
 			],
