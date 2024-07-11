@@ -41,7 +41,7 @@ export interface GhostStyle {
 export interface DistanceResult {
 	component: ComponentState;
 	distance: number;
-	direction: "left" | "right";
+	direction: "left" | "right" | "bottom";
 }
 
 export enum GhostType {

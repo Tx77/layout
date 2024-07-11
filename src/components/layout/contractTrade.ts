@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:09:47
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 15:09:09
+ * @LastEditTime: 2024-07-11 10:09:49
  * @Description:
  */
 
@@ -241,7 +241,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [1600, 2133],
 					compName: "UserExchangeTable",
-					height: 358,
+					height: 356,
 					x: 0,
 					y: 674,
 					zIndex: "3",

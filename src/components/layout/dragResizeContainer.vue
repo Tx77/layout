@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 20:23:49
+ * @LastEditTime: 2024-07-11 10:22:14
  * @Description: 
 -->
 <template>
@@ -409,12 +409,12 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 	}
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
-	const nearestComponent = findNearestXComponent(currentComponentState);
-	if (nearestComponent && nearestComponent.distance <= stepX) {
-		if (nearestComponent.direction === "left") {
-			ghostX.value = nearestComponent.component.x + nearestComponent.component.width + gap.value;
+	const nearestXComponent = findNearestXComponent(currentComponentState);
+	if (nearestXComponent && nearestXComponent.distance <= stepX) {
+		if (nearestXComponent.direction === "left") {
+			ghostX.value = nearestXComponent.component.x + nearestXComponent.component.width + gap.value;
 		} else {
-			ghostX.value = nearestComponent.component.x - currentComponentWidth - gap.value;
+			ghostX.value = nearestXComponent.component.x - currentComponentWidth - gap.value;
 		}
 	}
 
@@ -589,18 +589,36 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	}
 
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
-	const nearestComponent = findNearestXComponent(
+	const nearestXComponent = findNearestXComponent(
 		Object.assign(currentComponentState, {
 			width: ghostWidth.value,
 			height: currentComponentHeight,
 		})
 	);
-	if (
-		nearestComponent &&
-		ghostX.value + currentComponentWidth + gap.value <= nearestComponent.component.x &&
-		nearestComponent.component.x - (ghostX.value + currentComponentWidth + gap.value) <= stepX
-	) {
-		ghostWidth.value = nearestComponent.component.x - ghostX.value - gap.value;
+
+	if (nearestXComponent) {
+		if (
+			ghostX.value + currentComponentWidth + gap.value <= nearestXComponent.component.x &&
+			nearestXComponent.component.x - (ghostX.value + currentComponentWidth + gap.value) <= stepX
+		) {
+			ghostWidth.value = nearestXComponent.component.x - ghostX.value - gap.value;
+		}
+	}
+
+  //* 找到距离当前组件最近的组件，并对幽灵组件Y轴吸附过渡
+	const nearestYComponent = findNearestYComponent(
+		Object.assign(currentComponentState, {
+			width: ghostWidth.value,
+			height: currentComponentHeight,
+		})
+	);
+	if (nearestYComponent) {
+		if (
+			ghostY.value + currentComponentHeight + gap.value <= nearestYComponent.component.y &&
+			nearestYComponent.component.y - (ghostY.value + currentComponentHeight + gap.value) <= stepY
+		) {
+			ghostHeight.value = nearestYComponent.component.y - ghostY.value - gap.value;
+		}
 	}
 
 	//* 找到X轴上紧贴的上下组件
@@ -663,7 +681,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	//? 1、碰撞规则分为：a) 当前组件与其他组件碰撞，b) 幽灵组件与其他组件碰撞，其中幽灵组件碰撞为当前组件碰撞的子逻辑
 	//? 2、当前组件
 	if (overlappedComponents && overlappedComponents.length > 0) {
-		console.log(overlappedComponents);
 		flag.value = false;
 		const item = overlappedComponents[overlappedComponents.length - 1];
 		const leftOverlapped =
@@ -673,7 +690,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		const leftRightBoth =
 			currentComponentX <= item.x && currentComponentX + currentComponentWidth >= item.x + item.width;
 		if (leftOverlapped || rightOverlapped || leftRightBoth) {
-			console.log("===");
 			if (item.y >= ghostY.value) {
 				// const belowComponents = findBottomMatchingComponents(item);
 				// belowComponents.unshift(item);
@@ -742,24 +758,49 @@ function resetComponentsY(list?: ComponentState[]) {
  */
 function findNearestXComponent(currentComponent: ComponentState): DistanceResult | null {
 	const nearestComponents = components.value.filter((item) => item.compName !== currentComponent.compName);
-	let nearestComponent: DistanceResult | null = null;
+	let nearestXComponent: DistanceResult | null = null;
 	for (const component of nearestComponents) {
 		if (component.compName === currentComponent.compName) continue;
 		const leftDistance = currentComponent.x - (component.x + component.width);
 		const rightDistance = component.x - (currentComponent.x + currentComponent.width);
+		const bottomDistance = component.y - (currentComponent.y + currentComponent.height);
 
 		if (leftDistance > 0) {
-			if (!nearestComponent || leftDistance < nearestComponent.distance) {
-				nearestComponent = { component, distance: leftDistance, direction: "left" };
+			if (!nearestXComponent || leftDistance < nearestXComponent.distance) {
+				nearestXComponent = { component, distance: leftDistance, direction: "left" };
 			}
 		} else if (rightDistance > 0) {
-			if (!nearestComponent || rightDistance < nearestComponent.distance) {
-				nearestComponent = { component, distance: rightDistance, direction: "right" };
+			if (!nearestXComponent || rightDistance < nearestXComponent.distance) {
+				nearestXComponent = { component, distance: rightDistance, direction: "right" };
+			}
+		} else if (bottomDistance > 0) {
+			if (!nearestXComponent || bottomDistance < nearestXComponent.distance) {
+				nearestXComponent = { component, distance: bottomDistance, direction: "bottom" };
 			}
 		}
 	}
 
-	return nearestComponent;
+	return nearestXComponent;
+}
+/**
+ * 找到距离当前组件Y轴最近的组件以及方向
+ * @param currentComponent
+ */
+function findNearestYComponent(currentComponent: ComponentState): DistanceResult | null {
+	const nearestComponents = components.value.filter((item) => item.compName !== currentComponent.compName);
+	let nearestYComponent: DistanceResult | null = null;
+	for (const component of nearestComponents) {
+		if (component.compName === currentComponent.compName) continue;
+		const bottomDistance = component.y - (currentComponent.y + currentComponent.height);
+
+		if (bottomDistance > 0) {
+			if (!nearestYComponent || bottomDistance < nearestYComponent.distance) {
+				nearestYComponent = { component, distance: bottomDistance, direction: "bottom" };
+			}
+		}
+	}
+
+	return nearestYComponent;
 }
 
 /**
