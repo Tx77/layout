@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-11 10:22:14
+ * @LastEditTime: 2024-07-11 17:04:12
  * @Description: 
 -->
 <template>
@@ -99,7 +99,7 @@ watch(
 	() => {
 		if (props.layoutComponents) {
 			ghostDefaultStepX.value = setGhostStepXRange();
-			ghostStepX.value = ghostDefaultStepX.value + gap.value / 2;
+			ghostStepX.value = ghostDefaultStepX.value + gap.value;
 			const localComponents = props.layoutComponents.map((item) => {
 				const width = translateToPxNumber(item.layoutStyle.width);
 
@@ -283,6 +283,7 @@ function handleResize(
 function setCurrentComponent(currentComponent: ComponentState) {
 	Object.assign(currentComp, currentComponent);
 	ghostY.value = currentComp.y;
+	ghostX.value = currentComp.x;
 }
 
 /**
@@ -382,7 +383,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 	if (currentComponentState.x + currentComponentWidth > props.screenWidth) {
 		currentComponentState.x = props.screenWidth - currentComponentWidth;
 	}
-	const stepX = Math.ceil(ghostStepX.value / 2);
+	const stepX = Math.floor(ghostStepX.value / 2);
 
 	const ghostComponentState = () => ({
 		compName: currentComponentState.compName,
@@ -392,18 +393,22 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		height: currentComponentHeight,
 	});
 
-	if (Math.abs(currentComponentX - ghostX.value) >= stepX) {
+	if (Math.abs(currentComponentX - ghostX.value) > stepX) {
 		if (currentComponentX - ghostX.value > 0) {
 			if (currentComponentWidth + ghostX.value >= props.screenWidth) {
 				ghostX.value = props.screenWidth - currentComponentWidth;
 			} else {
-				ghostX.value = currentComponentX + stepX;
+				ghostX.value += ghostStepX.value;
 			}
 		} else {
 			if (ghostX.value - ghostStepX.value <= 0) {
 				ghostX.value = 0;
 			} else {
-				ghostX.value = currentComponentX - stepX;
+				if (currentComponentX - stepX <= 0) {
+					ghostX.value = 0;
+				} else {
+					ghostX.value -= ghostStepX.value;
+				}
 			}
 		}
 	}
@@ -539,14 +544,58 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	width: number;
 	height: number;
 } {
-	ghostY.value = currentComponentState.y;
-	ghostX.value = currentComponentState.x;
 	let currentComponentX = currentComponentState.x;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
 	const currentComponentMinWidth = currentComponentState.minW! * ghostDefaultStepX.value;
-	const stepX = Math.ceil(ghostStepX.value / 2);
-	const stepY = Math.ceil(ghostStepY.value / 2);
+	const stepX = Math.floor(ghostStepX.value / 2);
+	const stepY = Math.floor(ghostStepY.value / 2);
+
+	/**
+	 * 获取幽灵组件
+	 */
+	const ghostComponentState = () => ({
+		compName: currentComponentState.compName,
+		x: ghostX.value,
+		y: ghostY.value,
+		width: ghostWidth.value,
+		height: ghostHeight.value,
+	});
+
+	/**
+	 * 幽灵组件宽度改变事件
+	 * 由于在resize时，幽灵组件的Y轴可能会改变，因此不能用原生组件来判断，因此统一用幽灵组件来判断
+	 */
+	const ghostWidthChange = (): boolean => {
+		let isChange = false;
+		//* 找到X轴上紧贴的上下组件
+		const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
+		if (nearestXAxisComponent) {
+			console.log(nearestXAxisComponent.compName);
+			const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
+			if (
+				ghostX.value + ghostWidth.value + ghostStepX.value > nearestXSumWidth &&
+				ghostX.value + ghostWidth.value < nearestXSumWidth
+			) {
+				// console.log("adjust add", nearestXAxisComponent.compName);
+				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
+					ghostWidth.value = nearestXSumWidth - ghostX.value;
+					isChange = true;
+				}
+			}
+			if (
+				ghostX.value + ghostWidth.value - ghostStepX.value < nearestXAxisComponent.x - gap.value &&
+				ghostX.value + ghostWidth.value + gap.value > nearestXAxisComponent.x
+			) {
+				// console.log("adjust sub", nearestXAxisComponent.compName);
+				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
+					ghostWidth.value = nearestXAxisComponent.x - ghostX.value - gap.value;
+					isChange = true;
+				}
+			}
+		}
+		return isChange;
+	};
 
 	//* X轴步进计算
 	if (currentComponentWidth >= currentComponentMinWidth) {
@@ -555,7 +604,10 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 				if (ghostWidth.value + ghostStepX.value > props.screenWidth) {
 					ghostWidth.value = props.screenWidth;
 				} else {
-					ghostWidth.value += ghostStepX.value;
+					if (!ghostWidthChange()) {
+						// console.log("normal add");
+						ghostWidth.value += ghostStepX.value;
+					}
 				}
 			} else {
 				if (
@@ -564,7 +616,10 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 				) {
 					ghostWidth.value = currentComponentMinWidth;
 				} else {
-					ghostWidth.value -= ghostStepX.value;
+					if (!ghostWidthChange()) {
+						// console.log("normal sub");
+						ghostWidth.value -= ghostStepX.value;
+					}
 				}
 			}
 		}
@@ -596,16 +651,17 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		})
 	);
 
-	if (nearestXComponent) {
-		if (
-			ghostX.value + currentComponentWidth + gap.value <= nearestXComponent.component.x &&
-			nearestXComponent.component.x - (ghostX.value + currentComponentWidth + gap.value) <= stepX
-		) {
-			ghostWidth.value = nearestXComponent.component.x - ghostX.value - gap.value;
-		}
-	}
+	// if (nearestXComponent) {
+	// 	if (
+	// 		ghostX.value + currentComponentWidth + gap.value <= nearestXComponent.component.x &&
+	// 		nearestXComponent.component.x - (ghostX.value + currentComponentWidth + gap.value) <= stepX
+	// 	) {
+	// 		console.log("hahaha");
+	// 		ghostWidth.value = nearestXComponent.component.x - ghostX.value - gap.value;
+	// 	}
+	// }
 
-  //* 找到距离当前组件最近的组件，并对幽灵组件Y轴吸附过渡
+	//* 找到距离当前组件最近的组件，并对幽灵组件Y轴吸附过渡
 	const nearestYComponent = findNearestYComponent(
 		Object.assign(currentComponentState, {
 			width: ghostWidth.value,
@@ -620,27 +676,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			ghostHeight.value = nearestYComponent.component.y - ghostY.value - gap.value;
 		}
 	}
-
-	//* 找到X轴上紧贴的上下组件
-	const nearestXAxisComponent = findNearestXAxisComponent(currentComponentState);
-	if (nearestXAxisComponent) {
-		const currentSumWidth = currentComponentWidth + currentComponentX;
-		const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
-		if (
-			Math.abs(nearestXSumWidth - currentSumWidth) <= stepX &&
-			currentComponentWidth > ghostWidth.value + ghostX.value
-		) {
-			ghostWidth.value = nearestXSumWidth;
-		}
-	}
-
-	const ghostComponentState = () => ({
-		compName: currentComponentState.compName,
-		x: ghostX.value,
-		y: ghostY.value,
-		width: ghostWidth.value,
-		height: ghostHeight.value,
-	});
 
 	/**
 	 * 组件向下移动
@@ -715,6 +750,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			}
 		}
 	} else {
+		ghostY.value = currentComponentState.y;
 		flag.value = true;
 	}
 
@@ -938,15 +974,25 @@ function findNearestXAxisComponent(component: ComponentState): ComponentState | 
 			}
 		}
 	});
+	// console.log("topComponents", topComponents);
+	// console.log("bottomComponents", bottomComponents);
 
 	const arr = topComponents.concat(bottomComponents) as ComponentState[];
 	if (arr.length > 0) {
 		let minItem = arr[0] as ComponentState;
-		let min = Math.abs(minItem.x + minItem.width - (component.x + component.width));
+		let minSumWidth = Math.abs(minItem.x + minItem.width - (component.x + component.width));
 		arr.forEach((item) => {
-			if (Math.abs(item.x + item.width - (component.x + component.width)) < min) {
+			if (Math.abs(item.x + item.width - (component.x + component.width)) < minSumWidth) {
 				minItem = item;
-				min = Math.abs(item.x + item.width - (component.x + component.width));
+				minSumWidth = Math.abs(item.x + item.width - (component.x + component.width));
+			}
+		});
+		//* 距离当前组件X轴距离最小的组件可能存在与其他组件的x+width或x的差值都相等情况，这个时候要以距离x轴差值最小时为最高权重
+		let minX = Math.abs(minItem.x + minItem.width - component.x);
+		arr.forEach((item) => {
+			if (Math.abs(item.x - (component.x + component.width)) < minX) {
+				minItem = item;
+				minX = Math.abs(item.x + item.width - (component.x + component.width));
 			}
 		});
 		return minItem;
