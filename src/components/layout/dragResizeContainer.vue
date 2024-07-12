@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 13:58:12
+ * @LastEditTime: 2024-07-12 15:46:52
  * @Description: 
 -->
 <template>
@@ -400,7 +400,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 	const ghostXChange = (): boolean => {
 		let isChange = false;
 		//* 找到X轴上紧贴的上下组件
-		const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState(), true);
+		const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
 		if (nearestXAxisComponent) {
 			const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
 			if (
@@ -451,10 +451,10 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 	const nearestXComponent = findNearestXComponent(currentComponentState);
 	if (nearestXComponent && nearestXComponent.distance <= stepX) {
 		if (nearestXComponent.direction === "left") {
-			console.log("near left");
+			// console.log("near left");
 			ghostX.value = nearestXComponent.component.x + nearestXComponent.component.width + gap.value;
 		} else if (nearestXComponent.direction === "right") {
-			console.log("near right");
+			// console.log("near right");
 			ghostX.value = nearestXComponent.component.x - currentComponentWidth - gap.value;
 		}
 	}
@@ -476,6 +476,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 	if (overlappedComponents && overlappedComponents.length > 0) {
+		console.log(overlappedComponents);
 		//* 取最新的碰撞组件
 		const item = overlappedComponents[overlappedComponents.length - 1] as ComponentState;
 		flag.value = false;
@@ -505,6 +506,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			(currentComponentY > item.y + ghostStepY.value || case1 || case2) &&
 			(leftOverlapped || rightOverlapped || leftRightBoth)
 		) {
+			// console.log("+++", item.compName);
 			ghostY.value = item.y + item.height + gap.value;
 		} else {
 			ghostY.value = findClosestY(currentComponentState);
@@ -516,6 +518,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 					const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
 					ghostBelowComponents.unshift(ghostItem);
 					ghostBelowComponents.forEach((comp) => {
+						// console.log("====");
 						comp.y += currentComponentHeight + gap.value;
 						comp.moved = true;
 					});
@@ -588,7 +591,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
 	const nearestXComponent = findNearestXComponent(currentComponentState);
 	if (nearestXComponent && nearestXComponent.distance <= stepX) {
-		console.log("hahaha", nearestXComponent.component.compName);
+		// console.log("hahaha", nearestXComponent.component.compName);
 		if (nearestXComponent.direction === "right") {
 			ghostWidth.value = nearestXComponent.component.x - ghostX.value - gap.value;
 		}
@@ -609,7 +612,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 				ghostX.value + ghostWidth.value + ghostStepX.value > nearestXSumWidth &&
 				ghostX.value + ghostWidth.value < nearestXSumWidth
 			) {
-				console.log("adjust add", nearestXAxisComponent.compName);
+				// console.log("adjust add", nearestXAxisComponent.compName);
 				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
 					ghostWidth.value = nearestXSumWidth - ghostX.value;
 					isChange = true;
@@ -619,7 +622,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 				ghostX.value + ghostWidth.value - ghostStepX.value < nearestXAxisComponent.x - gap.value &&
 				ghostX.value + ghostWidth.value + gap.value > nearestXAxisComponent.x
 			) {
-				console.log("adjust sub", nearestXAxisComponent.compName);
+				// console.log("adjust sub", nearestXAxisComponent.compName);
 				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
 					ghostWidth.value = nearestXAxisComponent.x - ghostX.value - gap.value;
 					isChange = true;
@@ -637,7 +640,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 					ghostWidth.value = props.screenWidth;
 				} else {
 					if (!ghostWidthChange()) {
-						console.log("normal add");
+						// console.log("normal add");
 						ghostWidth.value += ghostStepX.value;
 					}
 				}
@@ -649,7 +652,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 					ghostWidth.value = currentComponentMinWidth;
 				} else {
 					if (!ghostWidthChange()) {
-						console.log("normal sub");
+						// console.log("normal sub");
 						ghostWidth.value -= ghostStepX.value;
 					}
 				}
@@ -699,7 +702,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		let initYAxis = ghostY.value + ghostHeight.value + gap.value;
 		ghostBelowComponents.forEach((comp, index) => {
 			if (index > 0) {
-				const topComponents = findClosestTop(comp);
+				const topComponents = findOverlappedComponents(comp);
 				if (topComponents && topComponents.length > 0) {
 					comp.y = topComponents[0].y + topComponents[0].height + gap.value;
 				}
@@ -726,9 +729,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 
-	//! resize规则：
-	//? 1、碰撞规则分为：a) 当前组件与其他组件碰撞，b) 幽灵组件与其他组件碰撞，其中幽灵组件碰撞为当前组件碰撞的子逻辑
-	//? 2、当前组件
 	if (overlappedComponents && overlappedComponents.length > 0) {
 		flag.value = false;
 		const item = overlappedComponents[overlappedComponents.length - 1];
@@ -740,9 +740,9 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			currentComponentX <= item.x && currentComponentX + currentComponentWidth >= item.x + item.width;
 		if (leftOverlapped || rightOverlapped || leftRightBoth) {
 			if (item.y >= ghostY.value) {
-				// const belowComponents = findBottomMatchingComponents(item);
-				// belowComponents.unshift(item);
-				// belowComponentsMove(belowComponents);
+				const belowComponents = findBottomMatchingComponents(item);
+				belowComponents.unshift(item);
+				belowComponentsMove(belowComponents);
 			}
 			if (item.y < ghostY.value) {
 				ghostY.value = item.y + item.height + gap.value;
@@ -752,7 +752,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			const ghostOverlappedComponents = findOverlappedComponents(ghostComponentState());
 			if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
 				const ghostItem = ghostOverlappedComponents[ghostOverlappedComponents.length - 1];
-				// belowComponentsMove(componentsBelowCurrent);
 				const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
 				ghostBelowComponents.unshift(ghostItem);
 				belowComponentsMove(ghostBelowComponents);
@@ -909,7 +908,7 @@ function findClosestY(currentComponentState: ComponentState, componentList?: Com
 		componentList && componentList.length > 0 ? componentList : components.value;
 
 	const initY = 0;
-	const stepX = Math.ceil(ghostStepX.value / 2);
+	const stepX = Math.floor(ghostStepX.value / 2);
 	const result = sourceComponents
 		.filter((item) => item.compName !== currentComponentState.compName)
 		.reduce(
@@ -955,7 +954,6 @@ function isOverlaping(item1: ComponentState, item2: ComponentState): boolean {
 		item1.y + item1.height > item2.y
 	);
 }
-
 /**
  * 找到被覆盖的组件
  * @param param
@@ -971,7 +969,7 @@ function findOverlappedComponents({ compName, x, y, width, height }: ComponentSt
  * @param component
  * @param topOnly
  */
-function findNearestXAxisComponent(component: ComponentState, topOnly = false): ComponentState | null {
+function findNearestXAxisComponent(component: ComponentState): ComponentState | null {
 	const topComponents: ComponentState[] = [];
 	const bottomComponents: ComponentState[] = [];
 	const isOverlappingX = (target: ComponentState): boolean => {
@@ -985,7 +983,7 @@ function findNearestXAxisComponent(component: ComponentState, topOnly = false): 
 			if (item.y + item.height + gap.value === component.y) {
 				topComponents.push(item);
 			}
-			if (item.y === component.y + component.height + gap.value && !topOnly) {
+			if (item.y === component.y + component.height + gap.value) {
 				bottomComponents.push(item);
 			}
 		}
