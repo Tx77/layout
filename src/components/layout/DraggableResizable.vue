@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 14:35:38
+ * @LastEditTime: 2024-07-12 10:40:47
  * @Description: 
 -->
 <template>
@@ -11,8 +11,8 @@
 			v-if="props.componentState.show"
 			:is="props.comp"
 			:compName="props.compName"
-			:width="computedContainerStyle.width"
-			:left="computedContainerStyle.left"
+			:width="`${containerStyle.width}px`"
+			:left="`${containerStyle.x}px`"
 			:cursor="mouseCursor"
 			@dragMouseDown.stop.prevent="onMouseDown"
 		></component>
