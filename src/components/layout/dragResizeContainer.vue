@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 18:06:08
+ * @LastEditTime: 2024-07-12 18:17:20
  * @Description: 
 -->
 <template>
@@ -652,6 +652,10 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 						ghostWidth.value -= ghostStepX.value;
 					}
 				}
+			}
+		} else {
+			if (currentComponentWidth === currentComponentMinWidth) {
+				ghostWidth.value = currentComponentMinWidth;
 			}
 		}
 	}
