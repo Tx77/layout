@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 11:31:40
+ * @LastEditTime: 2024-07-12 13:58:12
  * @Description: 
 -->
 <template>
@@ -402,27 +402,21 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		//* 找到X轴上紧贴的上下组件
 		const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState(), true);
 		if (nearestXAxisComponent) {
-			// console.log(nearestXAxisComponent.compName);
 			const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
 			if (
 				ghostX.value + ghostWidth.value + ghostStepX.value > nearestXSumWidth &&
 				ghostX.value + ghostWidth.value < nearestXSumWidth
 			) {
-				console.log("adjust add", nearestXAxisComponent.compName);
+				// console.log("adjust add", nearestXAxisComponent.compName);
 				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
 					ghostX.value = nearestXSumWidth - ghostWidth.value;
 					isChange = true;
 				}
 			}
-			if (
-				ghostX.value + ghostWidth.value - ghostStepX.value < nearestXAxisComponent.x - gap.value &&
-				ghostX.value + ghostWidth.value + gap.value > nearestXAxisComponent.x
-			) {
-				console.log("adjust sub", nearestXAxisComponent.compName);
-				if (nearestXSumWidth - ghostX.value < props.screenWidth && nearestXSumWidth - ghostX.value >= 0) {
-					ghostX.value = nearestXAxisComponent.x - ghostWidth.value - gap.value;
-					isChange = true;
-				}
+			if (ghostX.value > nearestXAxisComponent.x && ghostX.value - ghostStepX.value < nearestXAxisComponent.x) {
+				// console.log("adjust sub", nearestXAxisComponent.compName);
+				ghostX.value = nearestXAxisComponent.x;
+				isChange = true;
 			}
 		}
 		return isChange;
@@ -433,7 +427,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 				ghostX.value = props.screenWidth - currentComponentWidth;
 			} else {
 				if (!ghostXChange()) {
-					console.log("normal add");
+					// console.log("normal add");
 					ghostX.value += ghostStepX.value;
 				}
 			}
@@ -445,7 +439,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 					ghostX.value = 0;
 				} else {
 					if (!ghostXChange()) {
-						console.log("normal sub");
+						// console.log("normal sub");
 						ghostX.value -= ghostStepX.value;
 					}
 				}
