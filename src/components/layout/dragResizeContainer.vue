@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 15:46:52
+ * @LastEditTime: 2024-07-12 18:06:08
  * @Description: 
 -->
 <template>
@@ -19,9 +19,7 @@
 			:ghostStepX="ghostDefaultStepX"
 			@drag="handleDrag"
 			@resize="handleResize"
-			@setInitRange="setInitRange"
 			@setCurrentComponent="setCurrentComponent"
-			@setInitX="setInitX"
 			@setPointerEvents="setPointerEvents"
 			@setGhostComponent="setGhostComponent"
 			@setResizeGhostComponent="setResizeGhostComponent"
@@ -99,7 +97,7 @@ watch(
 	() => {
 		if (props.layoutComponents) {
 			ghostDefaultStepX.value = setGhostStepXRange();
-			ghostStepX.value = ghostDefaultStepX.value + gap.value;
+			ghostStepX.value = ghostDefaultStepX.value;
 			const localComponents = props.layoutComponents.map((item) => {
 				const width = translateToPxNumber(item.layoutStyle.width);
 
@@ -282,25 +280,10 @@ function handleResize(
  */
 function setCurrentComponent(currentComponent: ComponentState) {
 	Object.assign(currentComp, currentComponent);
-	ghostY.value = currentComp.y;
 	ghostX.value = currentComp.x;
-}
-
-/**
- * 配置幽灵组件初始X轴坐标
- * @param initX
- */
-const setInitX = (initX: number) => {
-	ghostX.value = initX;
-};
-
-/**
- * 配置幽灵组件初始宽度
- * @param initGhostWidth
- */
-function setInitRange(initGhostWidth: number, initGhostHeight: number) {
-	ghostWidth.value = initGhostWidth;
-	ghostHeight.value = initGhostHeight;
+	ghostY.value = currentComp.y;
+	ghostWidth.value = currentComp.width;
+	ghostHeight.value = currentComp.height;
 }
 
 /**
@@ -394,10 +377,18 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		height: currentComponentHeight,
 	});
 
+	function recalcGhostStepX(width: number) {
+		const step = parseFloat((width / ghostDefaultStepX.value).toFixed(4));
+		const roundStep = Math.round(step);
+		const dv = step - roundStep;
+		console.log(ghostDefaultStepX.value + parseFloat(((dv * ghostDefaultStepX.value) / roundStep).toFixed(4)));
+		return ghostDefaultStepX.value + (dv * ghostDefaultStepX.value) / roundStep;
+	}
+
 	/**
 	 * 幽灵组件X轴改变事件
 	 */
-	const ghostXChange = (): boolean => {
+	const ghostXChange = (status: string): boolean => {
 		let isChange = false;
 		//* 找到X轴上紧贴的上下组件
 		const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
@@ -405,15 +396,21 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
 			if (
 				ghostX.value + ghostWidth.value + ghostStepX.value > nearestXSumWidth &&
-				ghostX.value + ghostWidth.value < nearestXSumWidth
+				ghostX.value + ghostWidth.value < nearestXSumWidth &&
+				status === "plus"
 			) {
-				// console.log("adjust add", nearestXAxisComponent.compName);
+				console.log("adjust add", nearestXAxisComponent.compName);
 				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
 					ghostX.value = nearestXSumWidth - ghostWidth.value;
+					// ghostStepX.value = recalcGhostStepX(ghostWidth.value);
 					isChange = true;
 				}
 			}
-			if (ghostX.value > nearestXAxisComponent.x && ghostX.value - ghostStepX.value < nearestXAxisComponent.x) {
+			if (
+				ghostX.value > nearestXAxisComponent.x &&
+				ghostX.value - ghostStepX.value < nearestXAxisComponent.x &&
+				status === "minus"
+			) {
 				// console.log("adjust sub", nearestXAxisComponent.compName);
 				ghostX.value = nearestXAxisComponent.x;
 				isChange = true;
@@ -426,7 +423,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			if (currentComponentWidth + ghostX.value >= props.screenWidth) {
 				ghostX.value = props.screenWidth - currentComponentWidth;
 			} else {
-				if (!ghostXChange()) {
+				if (!ghostXChange("plus")) {
 					// console.log("normal add");
 					ghostX.value += ghostStepX.value;
 				}
@@ -438,7 +435,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 				if (currentComponentX - stepX <= 0) {
 					ghostX.value = 0;
 				} else {
-					if (!ghostXChange()) {
+					if (!ghostXChange("minus")) {
 						// console.log("normal sub");
 						ghostX.value -= ghostStepX.value;
 					}
@@ -476,7 +473,6 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 	if (overlappedComponents && overlappedComponents.length > 0) {
-		console.log(overlappedComponents);
 		//* 取最新的碰撞组件
 		const item = overlappedComponents[overlappedComponents.length - 1] as ComponentState;
 		flag.value = false;
@@ -904,10 +900,9 @@ function findTopMatchingComponents(component: ComponentState): ComponentState[] 
  * @param currentComponentState
  */
 function findClosestY(currentComponentState: ComponentState, componentList?: ComponentState[]): number {
+	const initY = 0;
 	const sourceComponents: ComponentState[] =
 		componentList && componentList.length > 0 ? componentList : components.value;
-
-	const initY = 0;
 	const stepX = Math.floor(ghostStepX.value / 2);
 	const result = sourceComponents
 		.filter((item) => item.compName !== currentComponentState.compName)

@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 10:40:47
+ * @LastEditTime: 2024-07-12 16:51:41
  * @Description: 
 -->
 <template>
@@ -62,15 +62,7 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits([
-	"drag",
-	"resize",
-	"setInitRange",
-	"setCurrentComponent",
-	"setGhostComponent",
-	"setInitX",
-	"setPointerEvents",
-]);
+const emit = defineEmits(["drag", "resize", "setCurrentComponent", "setGhostComponent", "setPointerEvents"]);
 const mouseCursor = ref("grab");
 
 const startX = ref(0);
@@ -169,7 +161,6 @@ const onMouseDown = (event: MouseEvent) => {
 	startLeft.value = containerStyle.x;
 	startTop.value = containerStyle.y;
 	emit("setCurrentComponent", containerStyle);
-	emit("setInitX", containerStyle.x);
 	emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 	let animationFrameId: number;
 
@@ -229,7 +220,6 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startHeight = Math.floor(containerStyle.height);
 	containerStyle.zIndex = "4";
 	emit("setCurrentComponent", containerStyle);
-	emit("setInitRange", startWidth, startHeight);
 
 	let newWidth = startWidth;
 	let newHeight = startHeight;
