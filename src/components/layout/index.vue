@@ -29,13 +29,6 @@ const componentInstance = reactive({
 	ExchangeInfo: markRaw(ExchangeInfo),
 	UserExchangeTable: markRaw(UserExchangeTable),
 });
-
-const vnode = h("div", {
-	innerHTML: "hello",
-	style: {
-		color: "#fff",
-	},
-});
 </script>
 
 <template>
@@ -62,6 +55,12 @@ const vnode = h("div", {
 <style scoped>
 .home-container {
 	width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+	.home-container {
+		overflow-x: auto;
+	}
 }
 
 p {

@@ -2,11 +2,11 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:09:47
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-16 17:35:17
+ * @LastEditTime: 2024-07-16 17:43:09
  * @Description:
  */
 
-import { LayoutStrategy, ScreenResolutionMap } from "./la"out";"
+import { LayoutStrategy, ScreenResolutionMap } from "./layout"
 
 export const contractTradeLayout: ScreenResolutionMap[] = [
   {

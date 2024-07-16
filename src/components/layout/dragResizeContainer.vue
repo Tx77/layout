@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-16 16:02:57
+ * @LastEditTime: 2024-07-16 17:51:19
  * @Description: 
 -->
 <template>
@@ -95,12 +95,11 @@ const layoutStorageData = ref();
 watch(
 	() => props.layoutComponents,
 	() => {
-		if (props.layoutComponents) {
+		if (props.layoutComponents && props.screenWidth >= 768) {
 			ghostDefaultStepX.value = setGhostStepXRange();
 			ghostStepX.value = ghostDefaultStepX.value;
 			const localComponents = props.layoutComponents.map((item) => {
 				const width = translateToPxNumber(item.layoutStyle.width);
-
 				return {
 					compName: item.compName,
 					width,

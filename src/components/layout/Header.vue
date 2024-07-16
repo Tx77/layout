@@ -101,16 +101,4 @@ const onMouseDown = (event: MouseEvent) => {
 	align-items: center;
 	justify-content: center;
 }
-
-/* @media (max-width: 1280px) {
-	.left {
-		flex: none;
-		width: 100%;
-	}
-	.item-box {
-		flex: none;
-		width: auto;
-		overflow-x: auto;
-	}
-} */
 </style>

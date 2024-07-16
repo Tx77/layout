@@ -136,7 +136,6 @@ onMounted(async () => {
 	const vnode = h("div", { class: "bar", innerHTML: "hello", style: { color: "red" } });
 	const container = document.createElement("div");
 	if (node) {
-		console.log(node);
 		render(vnode, container);
 		node.appendChild(container);
 	}
