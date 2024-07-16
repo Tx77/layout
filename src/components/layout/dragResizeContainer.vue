@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 18:17:20
+ * @LastEditTime: 2024-07-16 16:02:57
  * @Description: 
 -->
 <template>
@@ -303,7 +303,7 @@ function setPointerEvents(pointerEvents: string) {
 function setComponentsZIndex(currentCompId: string) {
 	components.value = components.value.map((item) => {
 		if (item.compName === currentCompId) {
-			item.zIndex = "4";
+			item.zIndex = "2";
 		} else {
 			item.zIndex = item.fixed ? "2" : "3";
 		}
@@ -321,9 +321,13 @@ function setGhostComponent(isShow: boolean, currentComponentState: ComponentStat
 	if (!ghostShow.value) {
 		return;
 	}
-
+	setComponentsZIndex(currentComponentState.compName);
+	if (ghostStyle.value) {
+		Object.assign(ghostStyle.value, {
+			zIndex: "1",
+		});
+	}
 	if (type === GhostType.DRAG) {
-		setComponentsZIndex(currentComponentState.compName);
 		setDragGhostComponent(currentComponentState);
 	}
 	if (type === GhostType.RESIZE) {
@@ -502,9 +506,10 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			(currentComponentY > item.y + ghostStepY.value || case1 || case2) &&
 			(leftOverlapped || rightOverlapped || leftRightBoth)
 		) {
-			// console.log("+++", item.compName);
+			console.log("+++", item.compName);
 			ghostY.value = item.y + item.height + gap.value;
 		} else {
+			console.log("%%%", item.compName);
 			ghostY.value = findClosestY(currentComponentState);
 		}
 		const ghostOverlappedComponents = ghostCheck();
@@ -514,7 +519,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 					const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
 					ghostBelowComponents.unshift(ghostItem);
 					ghostBelowComponents.forEach((comp) => {
-						// console.log("====");
+						console.log("====ghost overlapped", ghostItem.compName);
 						comp.y += currentComponentHeight + gap.value;
 						comp.moved = true;
 					});
@@ -904,7 +909,7 @@ function findTopMatchingComponents(component: ComponentState): ComponentState[] 
  * @param currentComponentState
  */
 function findClosestY(currentComponentState: ComponentState, componentList?: ComponentState[]): number {
-	const initY = 0;
+	const initY = 2;
 	const sourceComponents: ComponentState[] =
 		componentList && componentList.length > 0 ? componentList : components.value;
 	const stepX = Math.floor(ghostStepX.value / 2);

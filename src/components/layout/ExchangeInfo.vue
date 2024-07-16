@@ -5,6 +5,7 @@
 		</div>
 		<div>width: {{ props.width }}</div>
 		<div>left: {{ props.left }}</div>
+		<input type="text" />
 	</div>
 </template>
 

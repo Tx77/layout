@@ -1,5 +1,5 @@
 <script setup lang="ts" name="Layout">
-import { reactive, ref } from "vue";
+import { h, onMounted, reactive, ref, render } from "vue";
 import { LayoutStrategy } from "./layout";
 import LayoutResizer from "./LayoutResizer";
 import { contractTradeLayout } from "./contractTrade";
@@ -28,6 +28,13 @@ const componentInstance = reactive({
 	ExchangeList: markRaw(ExchangeList),
 	ExchangeInfo: markRaw(ExchangeInfo),
 	UserExchangeTable: markRaw(UserExchangeTable),
+});
+
+const vnode = h("div", {
+	innerHTML: "hello",
+	style: {
+		color: "#fff",
+	},
 });
 </script>
 

@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-12 16:51:41
+ * @LastEditTime: 2024-07-16 15:03:48
  * @Description: 
 -->
 <template>
@@ -155,6 +155,7 @@ const onMouseDown = (event: MouseEvent) => {
 		mouseCursor.value = "auto";
 		return;
 	}
+	containerStyle.zIndex = "2";
 	mouseCursor.value = "grabbing";
 	startX.value = event.clientX;
 	startY.value = event.clientY;
@@ -185,6 +186,7 @@ const onMouseDown = (event: MouseEvent) => {
 
 	const onMouseUp = () => {
 		emit("setPointerEvents", "auto");
+		containerStyle.zIndex = "1";
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
 		if (props.ghostStyle) {
 			const position = transformTranslateToLeftTop(props.ghostStyle.transform as string);
@@ -218,7 +220,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const startY = event.clientY;
 	const startWidth = Math.floor(containerStyle.width);
 	const startHeight = Math.floor(containerStyle.height);
-	containerStyle.zIndex = "4";
+	containerStyle.zIndex = "2";
 	emit("setCurrentComponent", containerStyle);
 
 	let newWidth = startWidth;
@@ -287,7 +289,7 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	const onMouseUp = () => {
 		isResizing = false;
 		emit("setPointerEvents", "auto");
-		containerStyle.zIndex = "3";
+		containerStyle.zIndex = "1";
 		//* 发送最终的尺寸更新事件
 		if (props.ghostStyle) {
 			const finalWidth = parseFloat(props.ghostStyle.width);

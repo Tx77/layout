@@ -5,10 +5,114 @@
 		</div>
 		<div>width: {{ props.width }}</div>
 		<div>left: {{ props.left }}</div>
+		<div>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+			<p>111</p>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts" name="UserExchangeTable">
+import { h, nextTick, onMounted, render } from "vue";
+
 const props = defineProps({
 	compName: {
 		type: String,
@@ -27,6 +131,16 @@ const props = defineProps({
 		default: "",
 	},
 });
+onMounted(async () => {
+	const node = document?.querySelector("#comp5")?.querySelector(".header");
+	const vnode = h("div", { class: "bar", innerHTML: "hello", style: { color: "red" } });
+	const container = document.createElement("div");
+	if (node) {
+		console.log(node);
+		render(vnode, container);
+		node.appendChild(container);
+	}
+});
 const emits = defineEmits(["dragMouseDown"]);
 const onMouseDown = (event: MouseEvent) => {
 	emits("dragMouseDown", event);
@@ -39,10 +153,30 @@ const onMouseDown = (event: MouseEvent) => {
 	position: relative;
 	width: 100%;
 	height: 100%;
+	overflow-y: auto;
 	.header {
 		width: 100%;
 		height: 60px;
 		border-bottom: 1px #262b33 solid;
 	}
+}
+#comp5:hover::-webkit-scrollbar {
+	width: 15px;
+	height: 14px;
+}
+#comp5::-webkit-scrollbar {
+	width: 0;
+}
+#comp5::-webkit-scrollbar-thumb {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	background-color: red;
+	background-clip: content-box;
+	border: solid 6px transparent;
+}
+#comp5::-webkit-scrollbar-track {
+	border: solid 6px transparent;
 }
 </style>
