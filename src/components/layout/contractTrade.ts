@@ -2,18 +2,18 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:09:47
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-15 18:29:24
+ * @LastEditTime: 2024-07-16 17:35:17
  * @Description:
  */
 
-import { LayoutStrategy, ScreenResolutionMap } from "./layout";
+import { LayoutStrategy, ScreenResolutionMap } from "./la"out";"
 
 export const contractTradeLayout: ScreenResolutionMap[] = [
   {
     layoutStrategy: LayoutStrategy.PRO_RIGHT,
     resolution: {
       '[768, 1023]': [
-        { width: [768, 1023], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '1', fixed: true, show: true },
+        { width: [768, 1023], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '2', fixed: true, show: true },
         {
           width: [500, 755],
           compName: 'ExchangeChart',
@@ -41,7 +41,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           x: 0,
           y: 64,
           zIndex: '1',
-          fixed: false,
+          fixed: true,
           show: true,
         },
         {
@@ -56,7 +56,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
         },
       ],
       '[1024, 1280]': [
-        { width: [1024, 1280], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '1', fixed: true, show: true },
+        { width: [1024, 1280], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '2', fixed: true, show: true },
         {
           width: [484, 742],
           compName: 'ExchangeChart',
@@ -84,7 +84,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           x: 0,
           y: 64,
           zIndex: '1',
-          fixed: false,
+          fixed: true,
           show: true,
         },
         {
@@ -99,7 +99,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
         },
       ],
       '[1281, 1440]': [
-        { width: [1281, 1440], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '1', fixed: true, show: true },
+        { width: [1281, 1440], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '2', fixed: true, show: true },
         {
           width: [746, 839],
           compName: 'ExchangeChart',
@@ -150,7 +150,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
         },
       ],
       '[1441, 1920]': [
-        { width: [1441, 1920], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '1', fixed: true, show: true },
+        { width: [1441, 1920], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '2', fixed: true, show: true },
         {
           width: [839, 1278],
           compName: 'ExchangeChart',
@@ -201,7 +201,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
         },
       ],
       '[1921, 2560]': [
-        { width: [1921, 2560], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '1', fixed: true, show: true },
+        { width: [1921, 2560], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '2', fixed: true, show: true },
         {
           width: [1278, 1706],
           compName: 'ExchangeChart',
@@ -223,7 +223,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           zIndex: '1',
           fixed: false,
           show: true,
-          minW: 2,
+          minW: 3,
           minHeight: 60,
         },
         {
@@ -235,7 +235,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           zIndex: '1',
           fixed: false,
           show: true,
-          minW: 2,
+          minW: 3,
           minHeight: 60,
         },
         {
@@ -252,7 +252,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
         },
       ],
       '[2561, 3840]': [
-        { width: [2561, 3840], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '1', fixed: true, show: true },
+        { width: [2561, 3840], compName: 'Header', height: 60, x: 0, y: 2, zIndex: '2', fixed: true, show: true },
         {
           width: [1706, 2559],
           compName: 'ExchangeChart',
@@ -314,7 +314,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           height: 60,
           x: 0,
           y: 2,
-          zIndex: '1',
+          zIndex: '2',
           fixed: true,
           show: true,
         },
@@ -345,7 +345,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           x: 0,
           y: 64,
           zIndex: '1',
-          fixed: false,
+          fixed: true,
           show: true,
         },
         {
@@ -355,7 +355,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           x: 0,
           y: 925,
           zIndex: '1',
-          fixed: false,
+          fixed: true,
           show: true,
         },
       ],
@@ -366,7 +366,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           height: 60,
           x: 0,
           y: 2,
-          zIndex: '1',
+          zIndex: '2',
           fixed: true,
           show: true,
         },
@@ -397,7 +397,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           x: 0,
           y: 64,
           zIndex: '1',
-          fixed: false,
+          fixed: true,
           show: true,
         },
         {
@@ -418,7 +418,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           height: 60,
           x: 0,
           y: 2,
-          zIndex: '1',
+          zIndex: '2',
           fixed: true,
           show: true,
         },
@@ -478,7 +478,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           height: 60,
           x: 0,
           y: 2,
-          zIndex: '1',
+          zIndex: '2',
           fixed: true,
           show: true,
         },
@@ -538,7 +538,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           height: 60,
           x: 0,
           y: 2,
-          zIndex: '1',
+          zIndex: '2',
           fixed: true,
           show: true,
         },
@@ -598,7 +598,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
           height: 60,
           x: 0,
           y: 2,
-          zIndex: '1',
+          zIndex: '2',
           fixed: true,
           show: true,
         },
