@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 14:09:38
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-10 14:05:16
+ * @LastEditTime: 2024-07-16 20:51:22
  * @Description:
  */
 
@@ -86,6 +86,8 @@ export default class LayoutResizer {
 		const compStyles = this.loadComponentWidthRange(this.currentLayoutStrategy.value, this.screenWidth.value);
 		if (compStyles) {
 			this.setComponentStyleByStrategy(compStyles);
+		} else {
+			this.minScreenWidthCase();
 		}
 	}
 
@@ -245,5 +247,36 @@ export default class LayoutResizer {
 			x: xPercentage.minPercentage.toFixed(4),
 			width: widthPercentage.minPercentage.toFixed(4),
 		};
+	}
+
+	/**
+	 * 最小屏幕宽度处理方案
+	 */
+	private minScreenWidthCase() {
+		if (this.screenWidth.value < 768) {
+			const defalutLayoutStrategy = this.screenResolutionMap[0].resolution;
+			const minScreenCase = defalutLayoutStrategy[Object.keys(defalutLayoutStrategy)[0]];
+			if (minScreenCase) {
+				minScreenCase.forEach((item) => {
+					this.layoutCompMap.set(item.compName, {
+						compName: item.compName,
+						layoutStyle: {
+							position: "absolute",
+							left: `${Array.isArray(item.x) ? item.x[0] : item.x}px`,
+							top: `${item.y}px`,
+							width: `${Array.isArray(item.width) ? item.width[0] : item.width}px`,
+							height: `${item.height}px`,
+							transition: "all 0.15s ease-out",
+							overflow: "hidden",
+							zIndex: item.zIndex,
+							minW: item.minW ? item.minW : 24,
+							minHeight: `${item.minHeight}px`,
+						},
+						fixed: item.fixed,
+						show: item.show,
+					});
+				});
+			}
+		}
 	}
 }

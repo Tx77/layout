@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-16 17:51:19
+ * @LastEditTime: 2024-07-16 20:38:55
  * @Description: 
 -->
 <template>
@@ -77,7 +77,7 @@ const ghostDefaultStepX = ref(0);
 //* 幽灵组件y轴移动的阈值
 const ghostStepY = ref(10);
 //* 幽灵组件样式
-const ghostStyle = ref<GhostStyle>();
+const ghostStyle = ref<GhostStyle>({});
 //* 幽灵组件x轴
 const ghostX = ref(0);
 //* 幽灵组件y轴
@@ -95,9 +95,9 @@ const layoutStorageData = ref();
 watch(
 	() => props.layoutComponents,
 	() => {
-		if (props.layoutComponents && props.screenWidth >= 768) {
+		if (props.layoutComponents) {
 			ghostDefaultStepX.value = setGhostStepXRange();
-			ghostStepX.value = ghostDefaultStepX.value;
+			ghostStepX.value = ghostDefaultStepX.value + gap.value;
 			const localComponents = props.layoutComponents.map((item) => {
 				const width = translateToPxNumber(item.layoutStyle.width);
 				return {
@@ -278,11 +278,12 @@ function handleResize(
  * @param currentComponent
  */
 function setCurrentComponent(currentComponent: ComponentState) {
+	// console.log("currentComponent", currentComponent.compName);
+	ghostX.value = currentComponent.x;
+	ghostY.value = currentComponent.y;
+	ghostWidth.value = currentComponent.width;
+	ghostHeight.value = currentComponent.height;
 	Object.assign(currentComp, currentComponent);
-	ghostX.value = currentComp.x;
-	ghostY.value = currentComp.y;
-	ghostWidth.value = currentComp.width;
-	ghostHeight.value = currentComp.height;
 }
 
 /**
@@ -318,6 +319,7 @@ function setComponentsZIndex(currentCompId: string) {
 function setGhostComponent(isShow: boolean, currentComponentState: ComponentState, type: GhostType) {
 	ghostShow.value = isShow;
 	if (!ghostShow.value) {
+		ghostStyle.value = {};
 		return;
 	}
 	setComponentsZIndex(currentComponentState.compName);
@@ -384,7 +386,6 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		const step = parseFloat((width / ghostDefaultStepX.value).toFixed(4));
 		const roundStep = Math.round(step);
 		const dv = step - roundStep;
-		console.log(ghostDefaultStepX.value + parseFloat(((dv * ghostDefaultStepX.value) / roundStep).toFixed(4)));
 		return ghostDefaultStepX.value + (dv * ghostDefaultStepX.value) / roundStep;
 	}
 
@@ -402,7 +403,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 				ghostX.value + ghostWidth.value < nearestXSumWidth &&
 				status === "plus"
 			) {
-				console.log("adjust add", nearestXAxisComponent.compName);
+				// console.log("adjust add", nearestXAxisComponent.compName);
 				if (nearestXSumWidth - ghostX.value < props.screenWidth) {
 					ghostX.value = nearestXSumWidth - ghostWidth.value;
 					// ghostStepX.value = recalcGhostStepX(ghostWidth.value);
@@ -505,10 +506,8 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			(currentComponentY > item.y + ghostStepY.value || case1 || case2) &&
 			(leftOverlapped || rightOverlapped || leftRightBoth)
 		) {
-			console.log("+++", item.compName);
 			ghostY.value = item.y + item.height + gap.value;
 		} else {
-			console.log("%%%", item.compName);
 			ghostY.value = findClosestY(currentComponentState);
 		}
 		const ghostOverlappedComponents = ghostCheck();
@@ -518,7 +517,6 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 					const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
 					ghostBelowComponents.unshift(ghostItem);
 					ghostBelowComponents.forEach((comp) => {
-						console.log("====ghost overlapped", ghostItem.compName);
 						comp.y += currentComponentHeight + gap.value;
 						comp.moved = true;
 					});
@@ -606,7 +604,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		//* 找到X轴上紧贴的上下组件
 		const nearestXAxisComponent = findNearestXAxisComponent(ghostComponentState());
 		if (nearestXAxisComponent) {
-			// console.log(nearestXAxisComponent.compName);
+			console.log(nearestXAxisComponent.compName);
 			const nearestXSumWidth = nearestXAxisComponent.x + nearestXAxisComponent.width;
 			if (
 				ghostX.value + ghostWidth.value + ghostStepX.value > nearestXSumWidth &&

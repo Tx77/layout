@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-16 15:03:48
+ * @LastEditTime: 2024-07-16 20:20:12
  * @Description: 
 -->
 <template>
@@ -329,6 +329,9 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
  * @param transform
  */
 function transformTranslateToLeftTop(transform: string): [number, number] | null {
+	if (!transform) {
+		return null;
+	}
 	//* 匹配 translate 或 translate3d
 	const translateMatch = transform.match(/translate(?:3d)?\(\s*([^)]+)\s*\)/);
 
