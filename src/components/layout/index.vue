@@ -33,6 +33,7 @@ const componentInstance = reactive({
 
 <template>
 	<div class="home-container" :style="{ height: `${screenHeight}px` }">
+		<div style="width: 100%; height: 64px; background: #15191c; color: #fff">Fixed Header</div>
 		<DragResizeContainer
 			:layoutComponents="[...layoutCompMap.values()]"
 			:screenWidth="screenWidth"

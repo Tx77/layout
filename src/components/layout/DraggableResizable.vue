@@ -155,7 +155,7 @@ const onMouseDown = (event: MouseEvent) => {
 		mouseCursor.value = "auto";
 		return;
 	}
-	containerStyle.zIndex = "2";
+	containerStyle.zIndex = "3";
 	mouseCursor.value = "grabbing";
 	startX.value = event.clientX;
 	startY.value = event.clientY;
