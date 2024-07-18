@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-13 16:09:47
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-17 16:53:37
+ * @LastEditTime: 2024-07-18 17:02:41
  * @Description:
  */
 
@@ -122,12 +122,12 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 4,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [265, 298],
 					compName: "ExchangeInfo",
-					height: 1136,
+					height: 1138,
 					x: [1015, 1142],
 					y: 64,
 					zIndex: "1",
@@ -139,7 +139,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [1013, 1140],
 					compName: "UserExchangeTable",
-					height: 524,
+					height: 526,
 					x: 0,
 					y: 676,
 					zIndex: "1",
@@ -173,7 +173,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 3,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [298, 318],
@@ -224,7 +224,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 3,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [318, 425],
@@ -275,12 +275,12 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 2,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [425, 638],
 					compName: "ExchangeInfo",
-					height: 968,
+					height: 1859,
 					x: [2135, 3202],
 					y: 64,
 					zIndex: "1",
@@ -292,7 +292,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [2133, 3200],
 					compName: "UserExchangeTable",
-					height: 356,
+					height: 1244,
 					x: 0,
 					y: 677,
 					zIndex: "1",
@@ -393,7 +393,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [254, 265],
 					compName: "ExchangeInfo",
-					height: 952,
+					height: 1137,
 					x: 0,
 					y: 64,
 					zIndex: "1",
@@ -403,7 +403,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [768, 1013],
 					compName: "UserExchangeTable",
-					height: 340,
+					height: 525,
 					x: [256, 267],
 					y: 676,
 					zIndex: "1",
@@ -444,12 +444,12 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 4,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [265, 298],
 					compName: "ExchangeInfo",
-					height: 1138,
+					height: 1136,
 					x: 0,
 					y: 64,
 					zIndex: "1",
@@ -504,12 +504,12 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 3,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [298, 318],
 					compName: "ExchangeInfo",
-					height: 968,
+					height: 1138,
 					x: 0,
 					y: 64,
 					zIndex: "1",
@@ -521,7 +521,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [1140, 1600],
 					compName: "UserExchangeTable",
-					height: 356,
+					height: 526,
 					x: [300, 320],
 					y: 676,
 					zIndex: "1",
@@ -564,12 +564,12 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 2,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [318, 425],
 					compName: "ExchangeInfo",
-					height: 968,
+					height: 1136,
 					x: 0,
 					y: 64,
 					zIndex: "1",
@@ -581,7 +581,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [1600, 2133],
 					compName: "UserExchangeTable",
-					height: 356,
+					height: 524,
 					x: [320, 427],
 					y: 676,
 					zIndex: "1",
@@ -624,12 +624,12 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 					fixed: false,
 					show: true,
 					minW: 2,
-					minHeight: 60,
+					minHeight: 307,
 				},
 				{
 					width: [425, 638],
 					compName: "ExchangeInfo",
-					height: 968,
+					height: 1859,
 					x: 0,
 					y: 64,
 					zIndex: "1",
@@ -641,7 +641,7 @@ export const contractTradeLayout: ScreenResolutionMap[] = [
 				{
 					width: [2133, 3200],
 					compName: "UserExchangeTable",
-					height: 356,
+					height: 1244,
 					x: [427, 640],
 					y: 674,
 					zIndex: "1",
