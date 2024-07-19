@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-19 17:29:21
+ * @LastEditTime: 2024-07-19 17:30:35
  * @Description: 
 -->
 <template>
@@ -501,20 +501,11 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		return [];
 	};
 	const triggerY = 40;
-	const leftOverlapped = (item: ComponentState): boolean => {
-		return (
-			currentComponentX + currentComponentWidth >= item.x + stepX &&
-			currentComponentX + currentComponentWidth < item.x + item.width
-		);
-	};
-	const rightOverlapped = (item: ComponentState): boolean => {
-		return currentComponentX > item.x && currentComponentX <= item.x + item.width - stepX;
-	};
 	const chooseOverlappedComponent = (overlappedComponents: ComponentState[]): ComponentState => {
 		let overlappedComponent = overlappedComponents[0] as ComponentState;
 		for (let i = 0; i < overlappedComponents.length; i++) {
 			const item = overlappedComponents[i] as ComponentState;
-			if (leftOverlapped(item) || rightOverlapped(item)) {
+			if (isOverlappingX(item, currentComponentState, stepX)) {
 				overlappedComponent = item;
 			}
 		}
@@ -522,7 +513,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 	};
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 	if (overlappedComponents && overlappedComponents.length > 0) {
-		const item = overlappedComponents[0];
+		const item = chooseOverlappedComponent(overlappedComponents);
 		// console.log("overlappedComponent", item.compName);
 		flag.value = false;
 		const topMatchingComponents = findTopMatchingComponents(item);
@@ -609,7 +600,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	width: number;
 	height: number;
 } {
-	let currentComponentX = currentComponentState.x;
 	const currentComponentWidth = currentComponentState.width;
 	const currentComponentHeight = currentComponentState.height;
 	const currentComponentMinWidth = currentComponentState.minW! * ghostDefaultStepX.value;
@@ -736,20 +726,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			ghostHeight.value = nearestYComponent.component.y - ghostY.value - gap.value;
 		}
 	}
-
-	/**
-	 * 找到距离顶部最近的组件
-	 * @param comp
-	 */
-	const findClosestTop = (comp: ComponentState): ComponentState[] => {
-		return components.value.filter(
-			(item) =>
-				item.compName !== comp.compName &&
-				item.y + item.height + gap.value >= comp.y &&
-				item.y + item.height + gap.value < comp.y + comp.height &&
-				((item.x >= comp.x && item.x <= comp.x + comp.width) || (item.x <= comp.x && item.x + item.width >= comp.x))
-		);
-	};
 
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 
