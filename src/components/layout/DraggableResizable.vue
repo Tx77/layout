@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-16 20:20:12
+ * @LastEditTime: 2024-07-19 16:31:02
  * @Description: 
 -->
 <template>
@@ -36,7 +36,7 @@ const props = defineProps({
 		default: () => {},
 	},
 	ghostStyle: {
-		type: Object as PropType<GhostStyle>,
+		type: Object as PropType<GhostStyle | null>,
 		default: () => {},
 	},
 	directions: {
@@ -69,6 +69,7 @@ const startX = ref(0);
 const startY = ref(0);
 const startLeft = ref(0);
 const startTop = ref(0);
+const rightButtonDown = ref(false);
 
 const container = ref<HTMLElement | null>(null);
 
@@ -146,10 +147,32 @@ const translateComponentState = (componentState: ComponentState) => {
 };
 
 /**
+ * 右键屏蔽事件，防止先点右键再点左键触发设定事件
+ * @param event
+ */
+function preventRightButton(event: MouseEvent) {
+	//* 右键按下
+	if (event.button === 2) {
+		rightButtonDown.value = true;
+	}
+	//* 左键按下且右键已按下
+	else if (event.button === 0 && rightButtonDown.value) {
+		rightButtonDown.value = false;
+		event.preventDefault();
+	} else if (event.button === 0) {
+		//* 正常左键点击事件
+		rightButtonDown.value = false;
+	}
+}
+/**
  * 组件drag事件
  * @param event
  */
 const onMouseDown = (event: MouseEvent) => {
+	preventRightButton(event);
+	if (rightButtonDown.value) {
+		return;
+	}
 	emit("setPointerEvents", "none");
 	if (props.componentState.fixed) {
 		mouseCursor.value = "auto";
@@ -184,7 +207,10 @@ const onMouseDown = (event: MouseEvent) => {
 		});
 	};
 
-	const onMouseUp = () => {
+	const onMouseUp = (event: MouseEvent) => {
+		if (event.button === 2) {
+			rightButtonDown.value = false;
+		}
 		emit("setPointerEvents", "auto");
 		containerStyle.zIndex = "1";
 		emit("setGhostComponent", false, containerStyle, GhostType.DRAG);
@@ -215,6 +241,10 @@ const onMouseDown = (event: MouseEvent) => {
  * @param event
  */
 const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
+	preventRightButton(event);
+	if (rightButtonDown.value) {
+		return;
+	}
 	emit("setPointerEvents", "none");
 	const startX = event.clientX;
 	const startY = event.clientY;
@@ -286,7 +316,10 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 		});
 	};
 
-	const onMouseUp = () => {
+	const onMouseUp = (event: MouseEvent) => {
+		if (event.button === 2) {
+			rightButtonDown.value = false;
+		}
 		isResizing = false;
 		emit("setPointerEvents", "auto");
 		containerStyle.zIndex = "1";

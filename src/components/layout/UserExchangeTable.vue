@@ -161,7 +161,6 @@ const onMouseDown = (event: MouseEvent) => {
 }
 #comp5:hover::-webkit-scrollbar {
 	width: 15px;
-	height: 14px;
 }
 #comp5::-webkit-scrollbar {
 	width: 0;
@@ -174,8 +173,6 @@ const onMouseDown = (event: MouseEvent) => {
 	background-color: red;
 	background-clip: content-box;
 	border: solid 6px transparent;
-}
-#comp5::-webkit-scrollbar-track {
-	border: solid 6px transparent;
+	cursor: pointer;
 }
 </style>
