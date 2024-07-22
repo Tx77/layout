@@ -2,26 +2,13 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-19 16:31:02
+ * @LastEditTime: 2024-07-22 16:44:26
  * @Description: 
 -->
 <template>
 	<div :id="props.compName" ref="container" class="draggable-resizable" :style="computedContainerStyle">
-		<component
-			v-if="props.componentState.show"
-			:is="props.comp"
-			:compName="props.compName"
-			:width="`${containerStyle.width}px`"
-			:left="`${containerStyle.x}px`"
-			:cursor="mouseCursor"
-			@dragMouseDown.stop.prevent="onMouseDown"
-		></component>
-		<div
-			v-for="dir in props.directions"
-			:key="dir"
-			:class="['resize-handle', dir]"
-			@mousedown.stop.prevent="onResizeHandleMouseDown(dir, $event)"
-		></div>
+		<component v-if="props.componentState.show" :is="props.comp" :compName="props.compName" :width="`${containerStyle.width}px`" :left="`${containerStyle.x}px`" :cursor="mouseCursor" @dragMouseDown.stop.prevent="onMouseDown"></component>
+		<div v-for="dir in props.directions" :key="dir" :class="['resize-handle', dir]" @mousedown.stop.prevent="onResizeHandleMouseDown(dir, $event)"></div>
 	</div>
 </template>
 
@@ -49,6 +36,10 @@ const props = defineProps({
 		default: "",
 	},
 	screenWidth: {
+		type: Number,
+		default: 0,
+	},
+	screenHeight: {
 		type: Number,
 		default: 0,
 	},
@@ -90,7 +81,6 @@ const containerStyle = reactive<ComponentState>({
 	y: props.componentState.y,
 	zIndex: props.componentState.zIndex,
 	transition: props.componentState.transition,
-	step: props.componentState.step,
 });
 
 const computedContainerStyle = computed(() => {
@@ -169,6 +159,7 @@ function preventRightButton(event: MouseEvent) {
  * @param event
  */
 const onMouseDown = (event: MouseEvent) => {
+	const fatherDom = document.querySelector(".drag-resize-container");
 	preventRightButton(event);
 	if (rightButtonDown.value) {
 		return;
@@ -202,6 +193,11 @@ const onMouseDown = (event: MouseEvent) => {
 		animationFrameId = requestAnimationFrame(() => {
 			const newLeft = startLeft.value + (moveEvent.clientX - startX.value);
 			const newTop = startTop.value + (moveEvent.clientY - startY.value);
+			if (newTop > props.screenHeight) {
+				if (fatherDom) {
+					fatherDom.scrollTop = newTop + containerStyle.height;
+				}
+			}
 			updatePosition(newLeft, newTop, "none");
 			emit("setGhostComponent", true, containerStyle, GhostType.DRAG);
 		});
@@ -245,9 +241,12 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 	if (rightButtonDown.value) {
 		return;
 	}
+	const fatherDom = document.querySelector(".drag-resize-container");
 	emit("setPointerEvents", "none");
-	const startX = event.clientX;
-	const startY = event.clientY;
+	startX.value = event.clientX;
+	startY.value = event.clientY;
+	startLeft.value = containerStyle.x;
+	startTop.value = containerStyle.y;
 	const startWidth = Math.floor(containerStyle.width);
 	const startHeight = Math.floor(containerStyle.height);
 	containerStyle.zIndex = "2";
@@ -278,10 +277,10 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 
 			//* 计算新的宽度
 			if (dir.includes("right")) {
-				newWidth = startWidth + (moveEvent.clientX - startX);
+				newWidth = startWidth + (moveEvent.clientX - startX.value);
 				needsUpdate = true;
 			} else if (dir.includes("left")) {
-				newWidth = startWidth - (moveEvent.clientX - startX);
+				newWidth = startWidth - (moveEvent.clientX - startX.value);
 				needsUpdate = true;
 			}
 
@@ -297,16 +296,22 @@ const onResizeHandleMouseDown = (dir: string, event: MouseEvent) => {
 
 			//* 计算新的高度
 			if (dir.includes("bottom")) {
-				newHeight = startHeight + (moveEvent.clientY - startY);
+				newHeight = startHeight + (moveEvent.clientY - startY.value);
 				needsUpdate = true;
 			} else if (dir.includes("top")) {
-				newHeight = startHeight - (moveEvent.clientY - startY);
+				newHeight = startHeight - (moveEvent.clientY - startY.value);
 				needsUpdate = true;
 			}
 
 			//* 限制最小高度
 			if (newHeight <= (containerStyle.minHeight as number)) {
 				newHeight = containerStyle.minHeight as number;
+			}
+
+			if (newHeight + startTop.value > props.screenHeight) {
+				if (fatherDom) {
+					fatherDom.scrollTop = props.screenHeight + containerStyle.height;
+				}
 			}
 
 			if (needsUpdate) {
@@ -398,7 +403,7 @@ function transformTranslateToLeftTop(transform: string): [number, number] | null
 	position: absolute;
 	width: 10px;
 	height: 10px;
-	background-color: #333;
+	background-color: #fff;
 	z-index: 11;
 }
 .resize-handle.top {

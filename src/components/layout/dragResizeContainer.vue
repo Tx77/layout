@@ -2,11 +2,11 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-19 17:30:35
+ * @LastEditTime: 2024-07-22 17:35:07
  * @Description: 
 -->
 <template>
-	<div class="drag-resize-container">
+	<div class="drag-resize-container" ref="scrollContainer" :style="{ height: `${scrollHeight}px` }">
 		<DraggableResizable
 			v-for="comp in components"
 			:key="comp.compName"
@@ -15,6 +15,7 @@
 			:ghostStyle="ghostStyle"
 			:directions="['bottom-right']"
 			:screenWidth="screenWidth"
+			:screenHeight="screenHeight"
 			:comp="componentInstance[comp.compName]"
 			:ghostStepX="ghostDefaultStepX"
 			@drag="handleDrag"
@@ -42,6 +43,10 @@ const props = defineProps({
 		default: () => [],
 	},
 	screenWidth: {
+		type: Number,
+		default: 0,
+	},
+	screenHeight: {
 		type: Number,
 		default: 0,
 	},
@@ -92,10 +97,14 @@ const flag = ref(true);
 const gap = ref(2);
 //* 布局缓存数据
 const layoutStorageData = ref();
+const scrollContainer = ref<HTMLElement | null>(null);
+const scrollHeight = ref(0);
+
 watch(
 	() => props.layoutComponents,
 	() => {
 		if (props.layoutComponents) {
+			scrollHeight.value = props.screenHeight;
 			ghostDefaultStepX.value = setGhostStepXRange();
 			ghostStepX.value = ghostDefaultStepX.value + gap.value;
 			const localComponents = props.layoutComponents.map((item) => {
@@ -500,7 +509,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		}
 		return [];
 	};
-	const triggerY = 40;
+	const triggerY = 20;
 	const chooseOverlappedComponent = (overlappedComponents: ComponentState[]): ComponentState => {
 		let overlappedComponent = overlappedComponents[0] as ComponentState;
 		for (let i = 0; i < overlappedComponents.length; i++) {
@@ -513,7 +522,9 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 	};
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 	if (overlappedComponents && overlappedComponents.length > 0) {
-		const item = chooseOverlappedComponent(overlappedComponents);
+		const item = overlappedComponents[0];
+		// const item = chooseOverlappedComponent(overlappedComponents);
+		// const item = overlappedComponents[overlappedComponents.length - 1];
 		// console.log("overlappedComponent", item.compName);
 		flag.value = false;
 		const topMatchingComponents = findTopMatchingComponents(item);
@@ -522,7 +533,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			//* 当前组件height大于碰撞组件height
 			case1 =
 				currentComponentHeight > item.height &&
-				currentComponentY + currentComponentHeight > item.y + item.height &&
+				currentComponentY + currentComponentHeight > item.y + item.height - triggerY &&
 				currentComponentY < item.y;
 		} else {
 			//* 碰撞组件上方有紧挨着的另一个组件需要单独判断
@@ -530,6 +541,7 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 		}
 		const case2 = currentComponentY >= item.y + triggerY;
 		if (isOverlappingX(item, currentComponentState, stepX)) {
+			//! 有的组件需要特殊处理，可以考虑给组件增加属性，通过属性来调整碰撞规则
 			if (case1 || case2) {
 				ghostY.value = item.y + item.height + gap.value;
 			} else {
@@ -537,11 +549,15 @@ function calcDragGhost(currentComponentState: ComponentState): { top: number; le
 			}
 			const ghostOverlappedComponents = ghostCheck();
 			if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
-				const ghostItem = ghostOverlappedComponents[ghostOverlappedComponents.length - 1] as ComponentState;
+				// console.log(JSON.stringify(ghostOverlappedComponents));
+				const ghostItem = ghostOverlappedComponents[0] as ComponentState;
 				// console.log(ghostItem.compName);
 				if (ghostY.value <= ghostItem.y) {
 					const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
-					ghostBelowComponents.unshift({ components: [ghostItem], maxHeight: ghostItem.height });
+					ghostBelowComponents.unshift({
+						components: [ghostItem],
+						maxHeight: ghostItem.height,
+					});
 					// console.log("ghostBelowComponents", ghostBelowComponents);
 					belowComponentsMove(ghostBelowComponents, true);
 				} else {
@@ -730,8 +746,10 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	const overlappedComponents = findOverlappedComponents(currentComponentState);
 
 	if (overlappedComponents && overlappedComponents.length > 0) {
+		// console.log(JSON.stringify(overlappedComponents));
 		flag.value = false;
 		const item = overlappedComponents[0];
+
 		if (isOverlappingX(item, currentComponentState, stepX)) {
 			if (item.y >= ghostY.value) {
 				const belowComponents = findBottomMatchingComponents(item);
@@ -748,9 +766,12 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			}
 			const ghostOverlappedComponents = findOverlappedComponents(ghostComponentState(), true);
 			if (ghostOverlappedComponents && ghostOverlappedComponents.length > 0) {
-				const ghostItem = ghostOverlappedComponents[ghostOverlappedComponents.length - 1];
+				const ghostItem = ghostOverlappedComponents[0];
 				const ghostBelowComponents = findBottomMatchingComponents(ghostItem);
-				ghostBelowComponents.unshift({ components: [ghostItem], maxHeight: ghostItem.height });
+				ghostBelowComponents.unshift({
+					components: [ghostItem],
+					maxHeight: ghostItem.height,
+				});
 				belowComponentsMove(ghostBelowComponents);
 			} else {
 				ghostCollidedComponents.value = [];
@@ -806,6 +827,7 @@ function belowComponentsMove(ghostBelowComponents: BottomMatchingComponents[], i
 					comp.y = upComp.y + upComp.height + gap.value;
 				}
 			}
+			comp.moved = true;
 		}
 	}
 }
@@ -887,7 +909,7 @@ function findBottomMatchingComponents(component: ComponentState): BottomMatching
 	const arr: BottomMatchingComponents[] = [];
 	const sortedComponents = components.value.slice().sort((a, b) => a.y - b.y);
 	const executeFunc = (comp: ComponentState) => {
-		const index = sortedComponents.findIndex((item) => item.y === comp.y + comp.height + gap.value);
+		const index = sortedComponents.findIndex((item) => item.y >= comp.y + comp.height + gap.value);
 		if (index > -1) {
 			for (let i = index; i < sortedComponents.length; i++) {
 				const item = sortedComponents[i];
@@ -1100,7 +1122,7 @@ function findNearestXAxisComponent(component: ComponentState): ComponentState | 
 .app {
 	position: relative;
 	width: 100%;
-	height: 100vh;
+	height: 100%;
 	background-color: #262b32;
 	overflow-x: hidden;
 	overflow-y: auto;
@@ -1117,8 +1139,12 @@ function findNearestXAxisComponent(component: ComponentState): ComponentState | 
 .drag-resize-container {
 	position: relative;
 	width: 100%;
-	height: calc(100% - 30px);
-	overflow-y: auto;
+	overflow-y: scroll;
 	scrollbar-width: none;
+	color: #fff;
+	margin-bottom: 30px;
+}
+.drag-resize-container::-webkit-scrollbar {
+	display: none;
 }
 </style>

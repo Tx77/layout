@@ -17,7 +17,6 @@ export interface ComponentState {
 	static?: boolean;
 	show?: boolean;
 	pointerEvents?: string;
-	step?: number;
 }
 
 export interface LayoutComponents extends ComponentState {
