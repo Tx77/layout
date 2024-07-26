@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-25 18:06:03
+ * @LastEditTime: 2024-07-26 15:49:59
  * @Description: 
 -->
 <template>
@@ -530,40 +530,18 @@ function recalcGhostStepXWithDrag(): number {
 	let leftRange = 0;
 	let rightRange = 0;
 	if (leftClosestComponent!) {
-		leftRange = ghostX.value - (leftClosestComponent.x + leftClosestComponent.width);
+		leftRange = ghostX.value - (leftClosestComponent.x + leftClosestComponent.width) - gap.value;
 	} else {
 		leftRange = ghostX.value;
 	}
 
 	if (rightClosestComponent!) {
-		rightRange = rightClosestComponent.x - (ghostX.value + ghostWidth.value);
+		rightRange = rightClosestComponent.x - (ghostX.value + ghostWidth.value) - gap.value;
+		return reCalcGhostStepX(leftRange + rightRange);
 	} else {
 		rightRange = props.screenWidth - (ghostX.value + ghostWidth.value);
+		return reCalcGhostStepX(rightRange);
 	}
-
-	return reCalcGhostStepX(leftRange + rightRange);
-}
-
-/**
- * 重新计算步进值
- * @param distance
- */
-function reCalcGhostStepX(distance: number): number {
-	let newGhostStepX = ghostStepX.value;
-	if (distance) {
-		const val = distance / ghostStepX.value;
-		const valStr = val.toFixed(4);
-		const integer = parseInt(valStr.substring(0, valStr.indexOf(".")));
-		const decimal = parseFloat("0" + valStr.substring(valStr.indexOf(".")));
-		// console.log("integer", integer);
-		// console.log("decimal", decimal);
-		if (!isNaN(integer) && integer > 0 && !isNaN(decimal) && decimal > 0) {
-			newGhostStepX = ghostStepX.value + parseFloat(((ghostStepX.value * decimal) / integer).toFixed(4));
-		} else {
-			newGhostStepX = ghostStepX.value;
-		}
-	}
-	return newGhostStepX;
 }
 
 /**
@@ -611,15 +589,6 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 		height: ghostHeight.value,
 	});
 
-	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
-	const nearestXComponent = findNearestXComponent(currentComponentState);
-	if (nearestXComponent && nearestXComponent.distance <= stepX) {
-		if (nearestXComponent.direction === "right") {
-			// console.log("hahaha", nearestXComponent.component.compName);
-			ghostWidth.value = nearestXComponent.component.x - ghostX.value - gap.value;
-		}
-	}
-
 	//* X轴步进计算
 	if (currentComponentWidth >= currentComponentMinWidth) {
 		if (Math.abs(currentComponentWidth - ghostWidth.value) >= stepX) {
@@ -628,7 +597,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 					ghostWidth.value = props.screenWidth;
 				} else {
 					const newGhostStepX = recalcGhostStepXWithResize();
-					// console.log("resize plus newGhostStepX", newGhostStepX);
+					console.log(Math.round(ghostWidth.value / ghostStepX.value) + 1, "resize plus newGhostStepX", newGhostStepX);
 					ghostWidth.value += newGhostStepX;
 				}
 			} else {
@@ -639,7 +608,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 					ghostWidth.value = currentComponentMinWidth;
 				} else {
 					const newGhostStepX = recalcGhostStepXWithResize();
-					// console.log("resize minus newGhostStepX", newGhostStepX);
+					console.log(Math.round(ghostWidth.value / ghostStepX.value) - 1, "resize minus newGhostStepX", newGhostStepX);
 					ghostWidth.value -= newGhostStepX;
 				}
 			}
@@ -665,6 +634,15 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			if (ghostHeight.value - stepY <= currentComponentState.minHeight!) {
 				ghostHeight.value = currentComponentState.minHeight!;
 			}
+		}
+	}
+
+	//* 找到距离当前组件最近的组件，并对幽灵组件X轴吸附过渡
+	const nearestXComponent = findNearestXComponent(currentComponentState);
+	if (nearestXComponent && nearestXComponent.distance <= stepX) {
+		if (nearestXComponent.direction === "right") {
+			// console.log("hahaha", nearestXComponent.component.compName);
+			ghostWidth.value = nearestXComponent.component.x - ghostX.value - gap.value;
 		}
 	}
 
@@ -705,6 +683,7 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 			}
 			return item;
 		});
+		ghostY.value = findClosestY(ghostComponentState());
 		resetComponentsY(sourceComponents);
 	}
 
@@ -720,6 +699,8 @@ function calcResizeGhost(currentComponentState: ComponentState): {
  * resize时重新计算步进值
  */
 function recalcGhostStepXWithResize(): number {
+	// const nearestXAxisComponent = findNearestXAxisComponent(currentComp);
+	// console.log("nearestXAxisComponent", nearestXAxisComponent);
 	const filterComponents = components.value.filter((item) => item.compName !== currentComp.compName);
 	let rightClosestComponent: ComponentState | null;
 
@@ -743,12 +724,34 @@ function recalcGhostStepXWithResize(): number {
 	let rightRange = 0;
 
 	if (rightClosestComponent!) {
-		rightRange = rightClosestComponent.x - (ghostX.value + ghostWidth.value);
+		rightRange = rightClosestComponent.x - (ghostX.value + ghostWidth.value) - gap.value;
+		return reCalcGhostStepX(leftRange + rightRange);
 	} else {
 		rightRange = props.screenWidth - (ghostX.value + ghostWidth.value);
+		return reCalcGhostStepX(rightRange);
 	}
+}
 
-	return reCalcGhostStepX(leftRange + rightRange);
+/**
+ * 重新计算步进值
+ * @param distance
+ */
+function reCalcGhostStepX(distance: number): number {
+	let newGhostStepX = ghostStepX.value;
+	if (distance) {
+		const val = distance / ghostStepX.value;
+		const valStr = val.toFixed(4);
+		const integer = parseInt(valStr.substring(0, valStr.indexOf(".")));
+		const decimal = parseFloat("0" + valStr.substring(valStr.indexOf(".")));
+		// console.log("integer", integer);
+		// console.log("decimal", decimal);
+		if (!isNaN(integer) && integer > 0 && !isNaN(decimal) && decimal > 0) {
+			newGhostStepX = parseFloat((ghostStepX.value + (ghostStepX.value * decimal) / integer).toFixed(4));
+		} else {
+			newGhostStepX = ghostStepX.value;
+		}
+	}
+	return newGhostStepX;
 }
 
 /**
@@ -797,7 +800,7 @@ function findNearestXComponent(currentComponent: ComponentState): DistanceResult
 	const nearestComponents = components.value.filter((item) => item.compName !== currentComponent.compName);
 	let nearestXComponent: DistanceResult | null = null;
 	for (const component of nearestComponents) {
-		if (component.compName === currentComponent.compName || component.y !== ghostY.value) continue;
+		if (component.compName === currentComponent.compName) continue;
 		const leftDistance = currentComponent.x - (component.x + component.width);
 		const rightDistance = component.x - (currentComponent.x + currentComponent.width);
 
@@ -985,6 +988,51 @@ function isOverlappingX(target: ComponentState, component: ComponentState, stepX
 		component.x + component.width >= target.x + stepX && component.x + component.width <= target.x + target.width;
 	// console.log("case4", case4);
 	return case1 || case2 || case3 || case4;
+}
+
+/**
+ * 找到X轴上离组件上下最近的组件
+ * @param component
+ * @param topOnly
+ */
+function findNearestXAxisComponent(component: ComponentState): ComponentState | null {
+	const topComponents: ComponentState[] = [];
+	const bottomComponents: ComponentState[] = [];
+
+	components.value.forEach((item) => {
+		if (item.compName !== component.compName && isOverlappingX(item, component)) {
+			if (item.y + item.height + gap.value === component.y) {
+				topComponents.push(item);
+			}
+			if (item.y === component.y + component.height + gap.value) {
+				bottomComponents.push(item);
+			}
+		}
+	});
+	// console.log("topComponents", topComponents);
+	// console.log("bottomComponents", bottomComponents);
+
+	const arr = topComponents.concat(bottomComponents) as ComponentState[];
+	if (arr.length > 0) {
+		let minItem = arr[0] as ComponentState;
+		let minSumWidth = Math.abs(minItem.x + minItem.width - (component.x + component.width));
+		arr.forEach((item) => {
+			if (Math.abs(item.x + item.width - (component.x + component.width)) < minSumWidth) {
+				minItem = item;
+				minSumWidth = Math.abs(item.x + item.width - (component.x + component.width));
+			}
+		});
+		//* 距离当前组件X轴距离最小的组件可能存在与其他组件的x+width或x的差值都相等情况，这个时候要以距离x轴差值最小时为最高权重
+		let minX = Math.abs(minItem.x + minItem.width - component.x);
+		arr.forEach((item) => {
+			if (Math.abs(item.x - (component.x + component.width)) < minX) {
+				minItem = item;
+				minX = Math.abs(item.x + item.width - (component.x + component.width));
+			}
+		});
+		return minItem;
+	}
+	return null;
 }
 </script>
 <style lang="less" scoped>

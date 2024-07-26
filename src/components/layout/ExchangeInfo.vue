@@ -5,6 +5,7 @@
 		</div>
 		<div>width: {{ props.width }}</div>
 		<div>left: {{ props.left }}</div>
+		<div>sumWidth: {{ parseFloat(props.width) + parseFloat(props.left) }}px</div>
 	</div>
 </template>
 
