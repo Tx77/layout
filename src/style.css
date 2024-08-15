@@ -55,6 +55,7 @@ button:focus-visible {
 	height: 100%;
 	position: absolute;
 	overflow-x: hidden;
+  background-color: #000;
 }
 
 #app::-webkit-scrollbar {

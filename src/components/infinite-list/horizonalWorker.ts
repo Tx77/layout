@@ -2,54 +2,72 @@
  * @Author: 田鑫
  * @Date: 2024-08-12 10:01:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-13 13:44:03
+ * @LastEditTime: 2024-08-14 17:07:05
  * @Description:
  */
-let offset = 0;
-let scrollSpeed = 2;
-let rowWidth = 0;
-let isScrolling = true;
-let animationFrameId: number | null = null; // 用于存储当前的动画帧 ID
+interface RowState {
+	offset: number;
+	scrollSpeed: number;
+	rowWidth: number;
+	isScrolling: boolean;
+	animationFrameId: number | null;
+}
+
+let rows: RowState[] = []; // 用于存储每个 row 的状态
 
 self.onmessage = (e) => {
-  const { command, scrollSpeed: newSpeed, rowWidth: newRowWidth } = e.data;
+	const { command, scrollSpeed, rowWidth, rowIndex } = e.data;
 
-  if (command === 'start') {
-    scrollSpeed = newSpeed;
-    rowWidth = newRowWidth;
-    isScrolling = true;
-    startScroll(); 
-  } else if (command === 'stop') {
-    isScrolling = false;
-    stopScroll(); 
-  }
+	if (command === "start") {
+		// 初始化或更新指定 row 的状态
+		if (!rows[rowIndex]) {
+			rows[rowIndex] = {
+				offset: 0,
+				scrollSpeed,
+				rowWidth,
+				isScrolling: true,
+				animationFrameId: null,
+			};
+		} else {
+			rows[rowIndex].scrollSpeed = scrollSpeed;
+			rows[rowIndex].rowWidth = rowWidth;
+			rows[rowIndex].isScrolling = true;
+		}
+
+		startScroll(rowIndex);
+	} else if (command === "stop") {
+		if (rows[rowIndex]) {
+			rows[rowIndex].isScrolling = false;
+			stopScroll(rowIndex);
+		}
+	}
 };
 
 /**
  * 开始滚动
  */
-function startScroll() {
-  if (animationFrameId === null) { 
-    scroll();
-  }
+function startScroll(rowIndex: number) {
+	if (rows[rowIndex].animationFrameId === null) {
+		scroll(rowIndex);
+	}
 }
 
 /**
  * 结束滚动
  */
-function stopScroll() {
-  if (animationFrameId !== null) {
-    cancelAnimationFrame(animationFrameId); 
-    animationFrameId = null;
-  }
+function stopScroll(rowIndex: number) {
+	if (rows[rowIndex].animationFrameId !== null) {
+		cancelAnimationFrame(rows[rowIndex].animationFrameId);
+		rows[rowIndex].animationFrameId = null;
+	}
 }
 
-function scroll() {
-  if (!isScrolling) return;
+function scroll(rowIndex: number) {
+	if (!rows[rowIndex].isScrolling) return;
+	const row = rows[rowIndex];
 
-  offset = (offset + scrollSpeed) % rowWidth;
-  self.postMessage({ offset });
+	row.offset = (row.offset + row.scrollSpeed) % row.rowWidth;
+	self.postMessage({ rowIndex, offset: row.offset });
 
-
-  animationFrameId = requestAnimationFrame(scroll); 
+	row.animationFrameId = requestAnimationFrame(() => scroll(rowIndex));
 }

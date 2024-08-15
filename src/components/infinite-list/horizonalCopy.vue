@@ -2,28 +2,23 @@
  * @Author: 田鑫
  * @Date: 2024-08-12 11:10:13
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-13 15:52:08
+ * @LastEditTime: 2024-08-14 18:13:38
  * @Description: 
 -->
 <template>
 	<div class="scroll-container">
 		<div
-			v-for="(row, rowIndex) in coinGroups"
+			v-for="(items, rowIndex) in visibleRows"
 			:key="rowIndex"
-			class="row"
-			:style="{ transform: `translate(-${offsets[rowIndex]}px, 0) translateZ(0)` }"
+			class="scroll-row"
+			@mouseenter="pauseAnimation(rowIndex)"
+			@mouseleave="resumeAnimation(rowIndex)"
+			@animationiteration="handleAnimationIteration(rowIndex)"
 		>
-			<div
-				v-for="(item, index) in getVisibleItems(rowIndex)"
-				:key="item.name"
-				class="item"
-				@mouseover="stopScrolling(rowIndex)"
-				@mouseleave="startScrolling(rowIndex)"
-				:style="{ left: `${getItemPosition(index, rowIndex)}px` }"
-			>
-				<div class="coin-item">
+			<div class="scroll-content" :class="{ paused: isPaused[rowIndex] }">
+				<div v-for="(item, itemIndex) in items" :key="itemIndex" class="scroll-item">
 					<img :src="item.logo" alt="logo" class="logo" @load="handleImageLoad" :class="{ loaded: imageLoaded }" />
-					<span class="name">{{ item.name }}</span>
+					<span>{{ item.name }}</span>
 				</div>
 			</div>
 		</div>
@@ -31,146 +26,129 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onUnmounted, watch } from "vue";
-import HorizonalWorker from "./horizonalWorker?worker";
+import { ref, onMounted } from "vue";
 
-const visibleItemCount = 5; // 可视区域内显示的 item 数量
-const gap = 0; // item 之间的间距
-const itemWidth = 160; // 每个 item 的宽度
-const scrollSpeed = 1.45;
+interface Item {
+	logo: string;
+	name: string;
+}
 
-// props 传入 coinGroups
 const props = defineProps<{
-	coinGroups: { logo: string; name: string }[][];
+	coinGroups: Item[][];
 }>();
 
-// 初始化每行的偏移量，使用随机值确保每行不同
-const initialOffsets = ref<number[]>(
-	props.coinGroups.map(() => Math.random() * 500) // 每行偏移一个随机值（0-500px）
-);
-const offsets = ref<number[]>([...initialOffsets.value]);
+// 每行可视区域显示的 item 数量
+const VISIBLE_COUNT = 7;
 
-const workers: Worker[] = [];
+// 控制每行动画暂停的状态
+const isPaused = ref<boolean[]>(Array(props.coinGroups.length).fill(false));
+
+// 动态生成可视区域的数据
+const visibleRows = ref<Item[][]>(
+	props.coinGroups.map((row) => {
+		return row.slice(0, VISIBLE_COUNT);
+	})
+);
+
+// 跟踪每行的当前索引，标识已经显示到哪一项
+const currentIndices = ref<number[]>(Array(props.coinGroups.length).fill(VISIBLE_COUNT));
+
 const imageLoaded = ref(false); // 控制图片加载状态
 
-// 获取当前可视区域内的 items
-function getVisibleItems(rowIndex: number) {
-	const rowItemCount = props.coinGroups[rowIndex]?.length || 0;
-	const startIndex = Math.floor(offsets.value[rowIndex] / (itemWidth + gap));
-	const items = [];
+// 暂停动画
+const pauseAnimation = (index: number) => {
+	isPaused.value[index] = true;
+};
 
-	for (let i = 0; i < visibleItemCount + 1; i++) {
-		const itemIndex = (startIndex + i) % rowItemCount;
-		if (itemIndex < rowItemCount) {
-			items.push(props.coinGroups[rowIndex][itemIndex]);
+// 恢复动画
+const resumeAnimation = (index: number) => {
+	isPaused.value[index] = false;
+};
+
+// 处理动画循环事件
+const handleAnimationIteration = (rowIndex: number) => {
+	const rowItems = visibleRows.value[rowIndex];
+	const originalRow = props.coinGroups[rowIndex];
+
+	// 将第一个元素移除，并顺序添加一个新元素到末尾
+	if (rowItems.length > 0) {
+		rowItems.shift(); // 移除第一个 item
+
+		// 获取下一个 item 的索引
+		const nextIndex = currentIndices.value[rowIndex];
+		if (nextIndex < originalRow.length) {
+			rowItems.push(originalRow[nextIndex]); // 顺序添加下一个 item
+			currentIndices.value[rowIndex] += 1; // 更新当前索引
+		} else {
+			// 如果到达了原始数据的末尾，回到数组起始位置继续
+			rowItems.push(originalRow[nextIndex % originalRow.length]);
+			currentIndices.value[rowIndex] = 1; // 重置为 1，确保能顺序循环添加
 		}
+
+		visibleRows.value[rowIndex] = [...rowItems]; // 触发响应性
 	}
-	return items;
-}
-
-// 计算每个 item 的位置
-function getItemPosition(index: number, rowIndex: number) {
-	const startIndex = Math.floor(offsets.value[rowIndex] / (itemWidth + gap));
-	return (startIndex + index) * (itemWidth + gap);
-}
-
-// 停止滚动
-function stopScrolling(rowIndex: number) {
-	workers[rowIndex].postMessage({ command: "stop" });
-}
-
-// 开始滚动
-function startScrolling(rowIndex: number) {
-	const rowItemCount = props.coinGroups[rowIndex]?.length || 0;
-	workers[rowIndex].postMessage({
-		command: "start",
-		scrollSpeed,
-		rowWidth: rowItemCount * (itemWidth + gap),
-	});
-}
+};
 
 // 图片加载完成后的处理函数，触发过渡效果
 function handleImageLoad() {
 	imageLoaded.value = true;
 }
 
-// 监听 props 变化，重新初始化 worker
-watch(
-	() => props.coinGroups,
-	(val) => {
-		if (val) {
-			props.coinGroups.forEach((_, index) => {
-				const worker = new HorizonalWorker();
-				workers.push(worker);
-
-				const rowItemCount = props.coinGroups[index]?.length || 0;
-
-				worker.postMessage({
-					command: "start",
-					scrollSpeed,
-					rowWidth: rowItemCount * (itemWidth + gap),
-				});
-
-				worker.onmessage = (e) => {
-					offsets.value[index] = initialOffsets.value[index] + e.data.offset;
-				};
-			});
-		}
-	},
-	{ immediate: true }
-);
-
-// 组件卸载时清除 worker
-onUnmounted(() => {
-	workers.forEach((worker) => worker.terminate());
+// 初始化动画
+onMounted(() => {
+	// 每行数据初始化时的动画
+	visibleRows.value.forEach((_, rowIndex) => {
+		handleAnimationIteration(rowIndex);
+	});
 });
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .scroll-container {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
-	overflow: hidden;
-	padding: 10px;
-	position: relative;
 }
 
-.row {
-	display: flex;
-	position: relative;
+.scroll-row {
+	overflow: hidden;
+	white-space: nowrap;
+	margin: 10px 0;
 	height: 100px;
 }
 
-.item {
-	position: absolute;
-	display: flex;
-	align-items: center;
-	padding: 10px 26px 10px 10px;
-	border-radius: 100px;
-	background-color: #ddd;
-	user-select: none;
+.scroll-content {
+	display: inline-flex;
+	animation: scroll 5s linear infinite;
 }
 
-.coin-item {
-	display: flex;
+.scroll-content.paused {
+	animation-play-state: paused;
+}
+
+.scroll-item {
+	display: inline-flex;
 	align-items: center;
+	justify-content: center;
+	padding: 10px 26px 10px 10px;
+	border-radius: 100px;
+	margin-right: 60px;
+	box-sizing: border-box;
+	background-color: #ddd;
 }
 
 .logo {
-	width: 20px;
-	height: 20px;
+	width: 30px;
+	height: 30px;
 	margin-right: 10px;
-	opacity: 0;
-	transition: opacity 0.5s ease-in-out;
 }
 
-.logo.loaded {
-	opacity: 1;
-}
-
-.name {
-	flex-grow: 1;
-	text-align: left;
+/* 无限滚动的动画 */
+@keyframes scroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-100%);
+	}
 }
 </style>
