@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-26 15:49:59
+ * @LastEditTime: 2024-08-16 14:27:01
  * @Description: 
 -->
 <template>
@@ -17,6 +17,7 @@
 			:screenWidth="screenWidth"
 			:screenHeight="screenHeight"
 			:comp="componentInstance[comp.compName]"
+			:initProps="initProps[comp.compName]"
 			:ghostStepX="ghostStepX"
 			@drag="handleDrag"
 			@resize="handleResize"
@@ -59,6 +60,10 @@ const props = defineProps({
 		default: () => {},
 	},
 	componentInstance: {
+		type: Object,
+		default: () => {},
+	},
+	initProps: {
 		type: Object,
 		default: () => {},
 	},
@@ -593,8 +598,8 @@ function calcResizeGhost(currentComponentState: ComponentState): {
 	if (currentComponentWidth >= currentComponentMinWidth) {
 		if (Math.abs(currentComponentWidth - ghostWidth.value) >= stepX) {
 			if (currentComponentWidth - ghostWidth.value >= 0) {
-				if (ghostWidth.value + ghostStepX.value > props.screenWidth) {
-					ghostWidth.value = props.screenWidth;
+				if (ghostX.value + ghostWidth.value + ghostStepX.value > props.screenWidth) {
+					ghostWidth.value = props.screenWidth - ghostX.value;
 				} else {
 					const newGhostStepX = recalcGhostStepXWithResize();
 					console.log(Math.round(ghostWidth.value / ghostStepX.value) + 1, "resize plus newGhostStepX", newGhostStepX);

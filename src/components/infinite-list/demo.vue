@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-15 10:16:04
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-15 14:53:17
+ * @LastEditTime: 2024-08-22 15:38:23
  * @Description: 
 -->
 
@@ -33,14 +33,13 @@
 
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount, onMounted } from "vue";
-
 const props = defineProps<{
 	coinGroups: { logo: string; name: string }[][];
 }>();
 
 const VISIBLE_COUNT = 7; // 每行可视区域内显示的 item 数量
 const ITEM_WIDTH = 160; // 每个 item 的宽度
-const speed = 0; // 移动速度
+const speed = 2; // 移动速度
 
 const offsets = ref<number[]>(props.coinGroups.map(() => Math.random() * ITEM_WIDTH));
 const visibleItems = ref(props.coinGroups.map((group) => group.slice(0, VISIBLE_COUNT)));

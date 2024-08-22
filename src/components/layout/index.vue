@@ -32,6 +32,12 @@ const componentInstance = reactive({
 	ExchangeInfo: markRaw(ExchangeInfo),
 	UserExchangeTable: markRaw(UserExchangeTable),
 });
+
+const initProps = reactive({
+	Header: {
+		screenWidth,
+	},
+});
 </script>
 
 <template>
@@ -43,9 +49,16 @@ const componentInstance = reactive({
 			:screenHeight="computedScreenHeight"
 			:layoutStrategy="layoutStrategy"
 			:layoutResizer="layoutResizer"
+			:init-props="initProps"
 			:componentInstance="componentInstance"
 		/>
-		<div class="footer">{{ screenWidth }}px</div>
+		<div class="footer">
+			<div>{{ screenWidth }}px</div>
+			<!-- <div class="btn-wrapper">
+				<button @click="switchLayout(LayoutStrategy.PRO_RIGHT)">专业布局 - 右</button>
+				<button @click="switchLayout(LayoutStrategy.PRO_LEFT)">专业布局 - 左</button>
+			</div> -->
+		</div>
 	</div>
 </template>
 
@@ -75,5 +88,15 @@ p {
 	background-color: #15191c;
 	z-index: 10;
 	color: #fff;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	.btn-wrapper {
+		display: flex;
+		align-items: center;
+		button {
+			color: #fff;
+		}
+	}
 }
 </style>

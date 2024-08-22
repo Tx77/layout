@@ -17,6 +17,7 @@
 			</div>
 		</div>
 		<div class="right">
+			<div class="icon" v-if="isShow">000</div>
 			<div class="icon">1</div>
 			<div class="icon">2</div>
 			<div class="icon">3</div>
@@ -26,6 +27,9 @@
 </template>
 
 <script setup lang="ts" name="Header">
+import { ref } from "vue";
+import { watch } from "vue";
+
 const props = defineProps({
 	compName: {
 		type: String,
@@ -39,12 +43,33 @@ const props = defineProps({
 		type: String,
 		default: "auto",
 	},
+	initProps: {
+		type: Object,
+		default: () => {},
+	},
+	screenWidth: {
+		type: Number,
+		default: 0,
+	},
 });
 
 const emits = defineEmits(["dragMouseDown"]);
 const onMouseDown = (event: MouseEvent) => {
 	emits("dragMouseDown", event);
 };
+const isShow = ref(true);
+
+watch(
+	() => props.initProps,
+	(val) => {
+		if (val.screenWidth <= 1280) {
+			isShow.value = false;
+		} else {
+			isShow.value = true;
+		}
+	},
+	{ immediate: true, deep: true }
+);
 </script>
 
 <style scoped>

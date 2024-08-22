@@ -13,6 +13,7 @@
     "vue-router": "4"
   },
   "devDependencies": {
+    "@arco-design/web-vue": "^2.56.0",
     "@types/node": "^22.1.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "less": "^4.2.0",

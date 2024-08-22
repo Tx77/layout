@@ -7,11 +7,11 @@ import ExchangeView from "./components/infinite-list/index.vue";
 </script>
 
 <template>
-  <div>
-    <!-- <Layout /> -->
-    <!-- <DragAndResize /> -->
-    <ExchangeView />
-  </div>
+	<div>
+		<!-- <Layout /> -->
+		<!-- <DragAndResize /> -->
+		<ExchangeView />
+	</div>
 </template>
 
 <style lang="less" scoped></style>
