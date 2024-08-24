@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-22 13:53:36
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-22 15:05:09
+ * @LastEditTime: 2024-08-23 15:29:25
  * @Description: 
 -->
 <template>
@@ -19,8 +19,11 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref } from "vue";
+
 const props = defineProps<{
 	coinGroups: { logo: string; name: string }[][];
+	animationActive: boolean;
 }>();
 </script>
 <style lang="less" scoped>
@@ -42,7 +45,7 @@ const props = defineProps<{
 	width: max-content;
 	display: flex;
 	height: 100px;
-	animation: infinite-slide 80s linear infinite;
+	animation: infinite-slide v-bind("(animationActive ? 80 : 0) + 's'") linear infinite;
 	.item-box {
 		display: flex;
 		align-items: center;

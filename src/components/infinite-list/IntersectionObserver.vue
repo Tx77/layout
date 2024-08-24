@@ -1,11 +1,10 @@
 <!--
  * @Author: 田鑫
- * @Date: 2024-08-10 15:04:27
+ * @Date: 2024-08-24 10:05:56
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-23 15:22:50
- * @Description: 
+ * @LastEditTime: 2024-08-24 10:05:56
+ * @Description:  IntersectionObsever示例
 -->
-
 <template>
 	<div class="home-page" ref="homePageRef">
 		<!-- <button @click="show = !show">toggle</button>
