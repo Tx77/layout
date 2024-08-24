@@ -19,6 +19,7 @@
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/tsconfig": "^0.5.1",
     "less": "^4.2.0",
+    "lodash-es": "^4.17.21",
     "swiper": "^8.3.2",
     "typescript": "^5.2.2",
     "unplugin-auto-import": "^0.18.2",

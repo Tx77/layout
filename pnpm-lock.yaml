@@ -33,6 +33,9 @@ importers:
       less:
         specifier: ^4.2.0
         version: 4.2.0
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
       swiper:
         specifier: ^8.3.2
         version: 8.3.2
@@ -698,6 +701,9 @@ packages:
   local-pkg@0.5.0:
     resolution: {integrity: sha512-ok6z3qlYyCDS4ZEU27HaU6x/xZa9Whf8jD4ptH5UZTQYZVYeb9bnZ3ojVhiJNLiXK1Hfc0GNbLXcmZ5plLDDBg==}
     engines: {node: '>=14'}
+
+  lodash-es@4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
 
   magic-string-ast@0.6.2:
     resolution: {integrity: sha512-oN3Bcd7ZVt+0VGEs7402qR/tjgjbM7kPlH/z7ufJnzTLVBzXJITRHOJiwMmmYMgZfdoWQsfQcY+iKlxiBppnMA==}
@@ -1693,6 +1699,8 @@ snapshots:
     dependencies:
       mlly: 1.7.1
       pkg-types: 1.2.0
+
+  lodash-es@4.17.21: {}
 
   magic-string-ast@0.6.2:
     dependencies:

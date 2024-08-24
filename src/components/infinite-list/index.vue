@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-10 15:04:27
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-24 16:05:23
+ * @LastEditTime: 2024-08-24 17:31:53
  * @Description: 
 -->
 
@@ -14,7 +14,7 @@
 		</div> -->
 		<!-- <Demo :coinGroups="coinGroupData" /> -->
 		<OrderBook />
-		<VirtualSocketList />
+		<!-- <VirtualSocketList /> -->
 		<!-- <Animation :coinGroups="coinGroupData" /> -->
 		<!-- <Horizonal :coinGroups="coinGroupData" /> -->
 		<!-- <horizonalCopy :coinGroups="coinGroupData" /> -->

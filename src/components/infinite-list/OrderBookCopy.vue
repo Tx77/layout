@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-10 16:29:33
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-24 16:07:30
+ * @LastEditTime: 2024-08-24 18:29:20
  * @Description: 
 -->
 
@@ -59,7 +59,7 @@ const visibleOrders = ref<Order[]>([]);
 const itemHeight = 40;
 const containerHeight = 400;
 const buffer = 5;
-const visibleCount = computed(() => Math.ceil(containerHeight / itemHeight) + buffer * 2);
+const visibleCount = computed(() => Math.ceil(containerHeight / itemHeight) + buffer);
 const start = ref(0);
 const totalHeight = computed(() => orders.value.length * itemHeight);
 
@@ -70,16 +70,14 @@ let intervalId: NodeJS.Timeout;
 let isRendering = false;
 
 const updateOrders = async () => {
-	if (isRendering) {
-		return;
-	}
+	if (isRendering) return;
 
 	isRendering = true;
-
 	worker.postMessage(20000);
 
 	worker.onmessage = async (e: MessageEvent) => {
-		orders.value = e.data;
+		const newOrders = e.data;
+		orders.value.splice(0, newOrders.length, ...newOrders);
 		await nextTick();
 		isRendering = false;
 		updateVisibleOrders();
@@ -92,13 +90,14 @@ const updateVisibleOrders = () => {
 	visibleOrders.value = orders.value.slice(startBuffer, endBuffer);
 };
 
-const onScroll = () => {
+const onScroll = throttle(() => {
 	if (scrollContainer.value) {
 		const scrollTop = scrollContainer.value.scrollTop;
 		start.value = Math.floor(scrollTop / itemHeight);
-		requestAnimationFrame(updateVisibleOrders);
+		//* 关闭降低内存占用率
+		// updateVisibleOrders();
 	}
-};
+}, 100);
 
 onMounted(() => {
 	worker = new OrderWorker();
