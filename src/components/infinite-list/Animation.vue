@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-22 13:53:36
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-23 15:29:25
+ * @LastEditTime: 2024-08-24 16:06:10
  * @Description: 
 -->
 <template>
@@ -19,8 +19,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
-
 const props = defineProps<{
 	coinGroups: { logo: string; name: string }[][];
 	animationActive: boolean;

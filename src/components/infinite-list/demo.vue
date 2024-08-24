@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-15 10:16:04
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-22 16:39:07
+ * @LastEditTime: 2024-08-24 16:06:21
  * @Description: 
 -->
 
@@ -32,7 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount, onMounted } from "vue";
 const props = defineProps<{
 	coinGroups: { logo: string; name: string }[][];
 }>();

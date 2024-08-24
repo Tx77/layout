@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-12 09:46:46
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-15 14:14:44
+ * @LastEditTime: 2024-08-24 16:06:26
  * @Description: 
 -->
 
@@ -33,7 +33,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onUnmounted, watch } from "vue";
 import HorizonalWorker from "./horizonalWorker?worker";
 
 const visibleItemCount = 7; // 可视区域内显示的 item 数量

@@ -1,16 +1,13 @@
 <script setup lang="ts" name="Layout">
-import { reactive, ref } from "vue";
 import { LayoutStrategy } from "./layout";
 import LayoutResizer from "./LayoutResizer";
 import { contractTradeLayout } from "./contractTrade";
 import DragResizeContainer from "./dragResizeContainer.vue";
 import Header from "./Header.vue";
-import { markRaw } from "vue";
 import ExchangeChart from "./ExchangeChart.vue";
 import ExchangeList from "./ExchangeList.vue";
 import ExchangeInfo from "./ExchangeInfo.vue";
 import UserExchangeTable from "./UserExchangeTable.vue";
-import { computed } from "vue";
 
 const layoutStrategy = ref(LayoutStrategy.PRO_RIGHT);
 const layoutResizer = new LayoutResizer("#app", layoutStrategy.value, contractTradeLayout);

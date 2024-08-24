@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-10 16:29:33
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-15 16:57:02
+ * @LastEditTime: 2024-08-24 16:07:30
  * @Description: 
 -->
 
@@ -45,7 +45,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import OrderWorker from "./orderWorker?worker";
 
 interface Order {
@@ -121,8 +120,6 @@ onUnmounted(() => {
 .order-book {
 	width: 100%;
 	max-width: 600px;
-	margin: 0 auto;
-	font-family: Arial, sans-serif;
 
 	h2 {
 		text-align: center;

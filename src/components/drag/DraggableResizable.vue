@@ -14,8 +14,6 @@
 </template>
 
 <script setup lang="ts" name="DraggableResizable">
-import type { PropType } from "vue";
-import { ref, reactive, defineEmits, watch } from "vue";
 import { ComponentState, GhostType } from "./params";
 
 const props = defineProps({

@@ -1,5 +1,4 @@
 <script setup>
-import { ref } from "vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { Autoplay, FreeMode } from "swiper";
 

@@ -27,9 +27,6 @@
 </template>
 
 <script setup lang="ts" name="Header">
-import { ref } from "vue";
-import { watch } from "vue";
-
 const props = defineProps({
 	compName: {
 		type: String,

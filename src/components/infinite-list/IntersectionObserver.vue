@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-24 10:05:56
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-24 10:05:56
+ * @LastEditTime: 2024-08-24 16:06:41
  * @Description:  IntersectionObsever示例
 -->
 <template>
@@ -87,7 +87,6 @@
 </template>
 
 <script setup lang="ts" name="ExchangeView">
-import { ref, computed, onMounted, onUnmounted } from "vue";
 import OrderBook from "./OrderBookCopy.vue";
 import Horizonal from "./horizonal.vue";
 import horizonalCopy from "./horizonalCopy.vue";

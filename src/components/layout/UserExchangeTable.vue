@@ -112,7 +112,6 @@
 </template>
 
 <script setup lang="ts" name="UserExchangeTable">
-import { h, nextTick, onMounted, render } from "vue";
 
 const props = defineProps({
 	compName: {

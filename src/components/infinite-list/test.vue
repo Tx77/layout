@@ -2,46 +2,36 @@
  * @Author: 田鑫
  * @Date: 2024-08-14 10:32:51
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-14 10:32:52
+ * @LastEditTime: 2024-08-24 16:07:43
  * @Description: 
 -->
 <template>
-  <div class="infinite-scroll">
-    <div
-      v-for="(row, rowIndex) in props.data"
-      :key="rowIndex"
-      class="scroll-row"
-      @mouseenter="stopScroll(rowIndex)"
-      @mouseleave="startScroll(rowIndex)"
-    >
-      <div
-        ref="scrollContainer"
-        :style="getScrollContainerStyle(rowIndex)"
-        class="scroll-container"
-      >
-        <div
-          v-for="(item, index) in visibleItems(row, rowIndex)"
-          :key="index"
-          class="scroll-item"
-        >
-          <img :src="item.logo" alt="" class="item-logo" />
-          <span class="item-name">{{ item.name }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
+	<div class="infinite-scroll">
+		<div
+			v-for="(row, rowIndex) in props.data"
+			:key="rowIndex"
+			class="scroll-row"
+			@mouseenter="stopScroll(rowIndex)"
+			@mouseleave="startScroll(rowIndex)"
+		>
+			<div ref="scrollContainer" :style="getScrollContainerStyle(rowIndex)" class="scroll-container">
+				<div v-for="(item, index) in visibleItems(row, rowIndex)" :key="index" class="scroll-item">
+					<img :src="item.logo" alt="" class="item-logo" />
+					<span class="item-name">{{ item.name }}</span>
+				</div>
+			</div>
+		</div>
+	</div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-
 interface ScrollItem {
-  logo: string;
-  name: string;
+	logo: string;
+	name: string;
 }
 
 interface Props {
-  data: ScrollItem[][];
+	data: ScrollItem[][];
 }
 
 const props = defineProps<Props>();
@@ -55,36 +45,34 @@ const animationFrameIds = ref<number[]>([]);
 const animationPaused = ref(new Array(props.data.length).fill(false));
 
 const visibleItems = (row: ScrollItem[], rowIndex: number) => {
-  const startIdx = Math.floor(scrollPositions.value[rowIndex] / itemWidth) % row.length;
-  return new Array(visibleItemCount)
-    .fill(null)
-    .map((_, i) => row[(startIdx + i) % row.length]);
+	const startIdx = Math.floor(scrollPositions.value[rowIndex] / itemWidth) % row.length;
+	return new Array(visibleItemCount).fill(null).map((_, i) => row[(startIdx + i) % row.length]);
 };
 
 const getScrollContainerStyle = (rowIndex: number) => {
-  const pauseStyle = animationPaused.value[rowIndex] ? "paused" : "running";
-  return {
-    width: `${itemWidth * visibleItemCount}px`,
-    animation: `scroll-${rowIndex} linear infinite`,
-    "animation-play-state": pauseStyle,
-    "animation-duration": `${props.data[rowIndex].length / scrollSpeed}s`,
-  };
+	const pauseStyle = animationPaused.value[rowIndex] ? "paused" : "running";
+	return {
+		width: `${itemWidth * visibleItemCount}px`,
+		animation: `scroll-${rowIndex} linear infinite`,
+		"animation-play-state": pauseStyle,
+		"animation-duration": `${props.data[rowIndex].length / scrollSpeed}s`,
+	};
 };
 
 const startScroll = (rowIndex: number) => {
-  animationPaused.value[rowIndex] = false;
+	animationPaused.value[rowIndex] = false;
 };
 
 const stopScroll = (rowIndex: number) => {
-  animationPaused.value[rowIndex] = true;
+	animationPaused.value[rowIndex] = true;
 };
 
 onMounted(() => {
-  props.data.forEach((_, rowIndex) => startScroll(rowIndex));
+	props.data.forEach((_, rowIndex) => startScroll(rowIndex));
 });
 
 onBeforeUnmount(() => {
-  animationFrameIds.value.forEach((id) => cancelAnimationFrame(id));
+	animationFrameIds.value.forEach((id) => cancelAnimationFrame(id));
 });
 </script>
 

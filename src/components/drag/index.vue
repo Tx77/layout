@@ -20,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
 import { ComponentState, ComponentStyle, GhostStyle, DistanceResult, GhostType } from "./params";
 

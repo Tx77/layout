@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-19 18:32:04
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-21 10:36:13
+ * @LastEditTime: 2024-08-24 16:06:14
  * @Description: 
 -->
 <template>
@@ -45,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
 import store from "./store";
 
 const activeKey = ref("-1");

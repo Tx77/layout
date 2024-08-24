@@ -2,13 +2,14 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
 const resolve = (src: string) => fileURLToPath(new URL(`../${src}`, import.meta.url));
-// https://vitejs.dev/config/
+import { pluginsConfig } from "./config";
 export default defineConfig({
-	plugins: [vue()],
+	plugins: [vue(), ...pluginsConfig],
 	resolve: {
-		extensions: [".ts", ".js", ".json", ".vue"],
+		extensions: [".jsx", ".tsx", ".js", ".ts", ".json", ".vue"],
 		alias: {
 			"@": resolve("src"),
+			"@components": resolve("src/components"),
 		},
 	},
 });

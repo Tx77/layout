@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-10 15:10:32
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-10 15:10:32
+ * @LastEditTime: 2024-08-24 16:06:46
  * @Description: 
 -->
 
@@ -37,7 +37,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import OrderWorker from "./orderWorker?worker";
 
 // 定义订单类型

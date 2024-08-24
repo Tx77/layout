@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:44:45
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-16 14:27:01
+ * @LastEditTime: 2024-08-24 16:08:11
  * @Description: 
 -->
 <template>
@@ -32,7 +32,6 @@
 </template>
 
 <script setup lang="ts" name="DragResizeContainer">
-import { PropType, reactive, ref, watch } from "vue";
 import DraggableResizable from "./DraggableResizable.vue";
 import { ComponentState, GhostStyle, DistanceResult, GhostType } from "./params";
 import { LayoutCompMap, LayoutStrategy } from "./layout";

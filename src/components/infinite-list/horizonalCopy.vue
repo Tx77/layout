@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-12 11:10:13
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-14 18:13:38
+ * @LastEditTime: 2024-08-24 16:06:29
  * @Description: 
 -->
 <template>
@@ -26,8 +26,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
-
 interface Item {
 	logo: string;
 	name: string;

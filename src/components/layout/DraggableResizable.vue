@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-06-24 16:45:01
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-16 13:38:45
+ * @LastEditTime: 2024-08-24 16:08:03
  * @Description: 
 -->
 <template>
@@ -30,8 +30,6 @@
 </template>
 
 <script setup lang="ts" name="DraggableResizable">
-import type { defineComponent, PropType } from "vue";
-import { ref, reactive, defineEmits, watch, computed } from "vue";
 import { ComponentState, GhostStyle, GhostType } from "./params";
 
 const props = defineProps({

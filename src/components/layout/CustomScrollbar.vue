@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-07-19 14:19:36
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-07-19 14:47:18
+ * @LastEditTime: 2024-08-24 16:07:57
  * @Description: 
 -->
 <template>
@@ -15,8 +15,6 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
-
 export default {
 	name: "CustomScrollbar",
 	setup() {

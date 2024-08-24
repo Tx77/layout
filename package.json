@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vueuse/core": "^11.0.1",
     "vue": "^3.4.21",
     "vue-router": "4"
   },
@@ -16,10 +17,17 @@
     "@arco-design/web-vue": "^2.56.0",
     "@types/node": "^22.1.0",
     "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/tsconfig": "^0.5.1",
     "less": "^4.2.0",
     "swiper": "^8.3.2",
     "typescript": "^5.2.2",
+    "unplugin-auto-import": "^0.18.2",
+    "unplugin-icons": "^0.19.2",
+    "unplugin-vue-components": "^0.27.4",
+    "unplugin-vue-define-options": "^1.4.9",
     "vite": "^5.2.0",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-progress": "^0.0.7",
     "vue-tsc": "^2.0.6"
   }
 }
