@@ -2,7 +2,7 @@
  * @Author: 田鑫
  * @Date: 2024-08-24 15:34:18
  * @LastEditors: 田鑫
- * @LastEditTime: 2024-08-24 15:46:33
+ * @LastEditTime: 2024-08-24 17:55:20
  * @Description:
  */
 /**
@@ -22,7 +22,7 @@ export function configAutoImport() {
 			"@vueuse/core",
 			{
 				dayjs: [["default", "dayjs"]],
-				"lodash-es": ["cloneDeep", "omit", "pick"],
+				"lodash-es": ["cloneDeep", "throttle", "omit", "pick"],
 				"@/hooks": ["useModal"],
 			},
 		],
